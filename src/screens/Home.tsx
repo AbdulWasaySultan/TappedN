@@ -13,6 +13,7 @@ export default function Home() {
         <View style={styles.topContainer}>
           <Text style={styles.topText}>Hey,<Text style={styles.boldText}>{fullName || 'User'}</Text></Text>
           <Text>Home Screen Updated</Text>
+          <Text>Home Screen Updated</Text>
         </View>
       </View>
     </Container>
