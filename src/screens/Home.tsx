@@ -5,7 +5,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/navigation';
 
 export default function Home() {
-
+  const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
   const { fullName } = route.params;
   return (
     <Container>
