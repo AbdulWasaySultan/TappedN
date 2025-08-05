@@ -6,7 +6,7 @@ export type RootStackParamList = {
   ResetPassword: undefined; // ResetPassword takes no parameters
   Register: undefined; // Register takes no parameters
   OTP: undefined; // OTP screen takes no parameters for now. If it did, e.g., OTP: { userId: string };
-  Home: undefined; // Home screen takes no parameters
+  Home: { fullName?: string }; // Home screen takes optional fullName parameter
 
 };
 

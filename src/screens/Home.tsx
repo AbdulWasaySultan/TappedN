@@ -6,12 +6,13 @@ import { RootStackParamList } from '../navigation/navigation';
 
 export default function Home() {
   const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  const { fullName } = route.params;
+  const { fullName } = route.params || {};
   return (
     <Container>
       <View style={{ flex: 0.9, width: '100%' }}>
         <View style={styles.topContainer}>
-          <Text style={styles.topText}>Hello {fullName}</Text>
+          <Text style={styles.topText}>Hey,<Text style={styles.boldText}>{fullName || 'User'}</Text></Text>
+          <Text>Home Screen Updated</Text>
         </View>
       </View>
     </Container>
@@ -30,8 +31,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   topText:{
-      fontSize: 32,
-      fontWeight: 900,
+      fontSize: 26,
+      marginHorizontal: 14,
+      marginTop: 100,
+    },
+    boldText:{
+      fontWeight : 'bold',
+      fontSize: 26,
       marginHorizontal: 14,
       marginTop: 100,
     },
