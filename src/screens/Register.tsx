@@ -12,15 +12,16 @@ import {
 import { useState } from 'react';
 import { ImageBackground } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../src/navigation/navigation';
+import { RootStackParamList } from '../Navigation/navigation';
 import { ImageStyle } from 'react-native';
-import CustomTextField from '../components/TextField';
+import CustomTextField from '../Components/TextField';
 import {
   launchCamera,
   launchImageLibrary,
   MediaType,
 } from 'react-native-image-picker';
-import { useUser } from '../../src/context/userContext';
+import { useUser } from '../Context/userContext';
+import BackButton from '../Components/BackButton/BackButton';
 
 export default function Register() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -37,10 +38,7 @@ export default function Register() {
   const [passwordFieldIsFocused, setPasswordFieldIsFocused] =
     useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-
-
-
-// const { setFullName } = useUser();
+  const { setUserFullName, setSelectedProfileImage } = useUser();
 
 
   const showPasswordIcon = (iconStyle: ImageStyle) => {
@@ -54,8 +52,8 @@ export default function Register() {
         <Image
           source={
             showPassword
-              ? require('../assets/eye.png')
-              : require('../assets/eye-off.png')
+              ? require('../assets/images/eye.png')
+              : require('../assets/images/eye-off.png')
           }
           style={iconStyle}
         />
@@ -63,32 +61,51 @@ export default function Register() {
     );
   };
   const handleRegister = () => {
-    
-    if (!fullName || !password || !contactNo || !email) {
-      Alert.alert('Missing Fields', 'Please fill all the fields.', [
-        { text: 'OK' },
-      ]);
+    // if (!fullName || !password || !contactNo || !email) {
+    //   Alert.alert('Missing Fields', 'Please fill all the fields.', [
+    //     { text: 'OK' },
+    //   ]);
 
-      return;
-    } else if (!fullName && !contactNo && !email && !password) {
-      Alert.alert('Missing Fields', 'Please fill all the fields.', [
-        { text: 'OK' },
-      ]);
-      return;
-    }
-    const { setFullName } = useUser();
-    setFullName(fullName);
-    navigation.navigate('OTP');
+    //   return;
+    // } else if (!fullName && !contactNo && !email && !password) {
+    //   Alert.alert('Missing Fields', 'Please fill all the fields.', [
+    //     { text: 'OK' },
+    //   ]);
+    //   return;
+    // }
+    setUserFullName(fullName);
+    setSelectedProfileImage(selectedImage);
+    navigation.navigate('HomeTabs');
   };
 
-  const handleImagePicker = () => {
+  const handleImageUpload = () => {
+    Alert.alert(
+      'Upload Photo',
+      'Select an option to upload your profile picture',
+      [
+        {
+          text: 'Select From Gallery',
+          onPress: () => 
+            openGallery(),
+        },
+        {
+          text: 'Take a Photo',
+          onPress: () => 
+            openCamera(),
+        },
+        { text: 'Cancel'},
+       ],
+      { cancelable: true },
+    );
+  };
+
+  const openGallery = () => {
     const options = {
       mediaType: 'photo' as MediaType,
       includeBase64: false,
       maxHeight: 2000,
       maxWidth: 2000,
     };
-
     launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -99,14 +116,32 @@ export default function Register() {
       }
     });
   };
-  // style={styles.}
+  const openCamera = () => {
+    const options = {
+      mediaType: 'photo' as MediaType,
+      includeBase64: false,
+      maxHeight: 2000,
+      maxWidth: 2000,
+    };
+
+    launchCamera(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('Image picker error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        setSelectedImage(response.assets[0].uri || null);
+      }
+    });
+  };
   return (
     <ImageBackground
-      source={require('../assets/bg-image.png')}
+      source={require('../assets/images/bg-image.png')}
       style={{ width: '100%', flex: 1 }}
     >
       <ScrollView>
         <View style={styles.container}>
+        <BackButton />
           <View style={styles.topContainer}>
             <Text style={styles.boldText}>Register Your {'\n'}Account</Text>
 
@@ -115,13 +150,28 @@ export default function Register() {
                 source={
                   selectedImage
                     ? { uri: selectedImage }
-                    : require('../assets/profile.png')
+                    : require('../assets/images/profile.png')
                 }
                 style={styles.profilePic}
                 resizeMode="cover"
               />
 
-              <TouchableOpacity onPress={handleImagePicker}>
+              <TouchableOpacity onPress={handleImageUpload}>
+                <Image
+                  source={require('../assets/images/uploadOrange.png')}
+                  style={styles.uploadOrange}
+                  resizeMode="contain"
+                />
+                <Image
+                  source={require('../assets/images/upload.png')}
+                  style={styles.uploadIcon2}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+
+              {/* <TouchableOpacity onPress={handleImageUpload}></TouchableOpacity> */}
+
+              {/* <TouchableOpacity onPress={openGallery}>
                 <Image
                   source={require('../assets/uploadOrange.png')}
                   style={styles.uploadOrange}
@@ -132,8 +182,8 @@ export default function Register() {
                   style={styles.uploadIcon2}
                   resizeMode="contain"
                 />
-                {/* <Text style={styles.smallText}>Uplaod a Photo</Text> */}
-              </TouchableOpacity>
+                <Text style={styles.smallText}>Uplaod a Photo</Text>
+              </TouchableOpacity> */}
             </View>
           </View>
 
@@ -174,6 +224,7 @@ export default function Register() {
                 onChangeText={setEmail}
                 onFocus={() => setEmailFieldIsFocused(true)}
                 onBlur={() => setEmailFieldIsFocused(false)}
+                isFocused={emailFieldIsFocused}
               />
             </View>
             <View style={styles.passwordContainer}>
@@ -225,28 +276,28 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   topContainer: {
-    flex: 0.8,
+maxHeight : 500,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     // backgroundColor: '#cdcdcd',
     width: '90%',
-    marginTop: 60,
+    marginTop: '30%',
   },
   boldText: {
     fontSize: 32,
     fontWeight: 900,
     marginHorizontal: 14,
-    marginTop: 100,
+    marginTop: 60,
   },
   profilePicContainer: {
     alignSelf: 'center',
-    marginTop: 60,
+    marginTop: 50,
   },
   profilePic: {
     borderRadius: 80,
     boxSizing: 'content-box',
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
   },
   mainContainer: {
     justifyContent: 'flex-start',
@@ -379,11 +430,28 @@ const styles = StyleSheet.create({
     top: -39,
   },
   uploadIcon2: {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     position: 'absolute',
-    right: 18,
-    top: -26,
+    right: 19.5,
+    top: -25,
+  },
+  image: {
+    width: '100%',
+    height: 300,
+    marginVertical: 20,
+    borderRadius: 8,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 

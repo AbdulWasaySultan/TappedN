@@ -10,9 +10,9 @@ import {
   TextInput,
 } from 'react-native';
 import { useState } from 'react';
-import CustomTextField from '../components/TextField/index';
+import CustomTextField from '../Components/TextField/index';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../src/navigation/navigation';
+import { RootStackParamList } from '../Navigation/navigation';
 
 export default function Login() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -28,35 +28,20 @@ export default function Login() {
   };
 
   const handleLogin = () => {
-    if (!email && !password) {
-      Alert.alert('Missing Fields', 'Email and password cannot be empty.', [
-        { text: 'OK' },
-      ]);
-      return;
-    } else if (!email) {
-      Alert.alert('Missing Fields', 'An email address is required.', [
-        { text: 'OK' },
-      ]);
-      return;
-    } else if (!password) {
-      Alert.alert('Missing Fields', 'A password is required.', [
-        { text: 'OK' },
-      ]);
-      return;
-    }
-    else if (!email || !password) {
+    if (!email || !password) {
       Alert.alert('Missing Fields', 'Please enter both email and password.', [
         { text: 'OK' },
       ]);
-
       return;
     }
-    navigation.navigate('Home');
+    
+    // For now, pass a default name. In a real app, you'd get this from your backend
+    navigation.navigate('HomeTabs');
   };
 
   return (
     <ImageBackground
-      source={require('../assets/bg-image.png')}
+      source={require('../assets/images/bg-image.png')}
       style={{ width: '100%', flex: 1 }}
     >
       <View style={styles.container}>
@@ -86,7 +71,7 @@ export default function Login() {
               value={password}
               onChangeText={setPassword}
               onSubmitEditing={handleLogin}
-              onFocus={() => setPasswordFieldIsFocused(true)}
+              onFocus={() => setPasswordFieldIsFocused(true)} //onFocus is the textinput prop to handle anything when the textinput gets selected
               onBlur={() => setPasswordFieldIsFocused(false)}
               isFocused={passwordFieldIsFocused}
               secureTextEntry={!showPassword}
@@ -100,8 +85,8 @@ export default function Login() {
               <Image
                 source={
                   showPassword
-                    ? require('../assets/eye.png')
-                    : require('../assets/eye-off.png')
+                    ? require('../assets/images/eye.png')
+                    : require('../assets/images/eye-off.png')
                 }
                 style={styles.icon}
               />
@@ -235,7 +220,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     position: 'absolute',
     right: 16,
-    top: 42,
+    top: 44,
   },
   icon: {
     width: 30,

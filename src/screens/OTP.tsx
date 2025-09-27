@@ -6,18 +6,24 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  ImageBackground,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/navigation';
-import CustomTextField from '../components/TextField/index';
-import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
+import { RootStackParamList } from '../Navigation/navigation';
+import CustomTextField from '../Components/TextField/index';
+import BackButton from '../Components/BackButton/BackButton';
 
 export default function OTP() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const [OTP, setOTP] = useState<string>('');
   return (
+    <ImageBackground
+      source={require('../assets/images/bg-image.png')}
+      style={{ width: '100%', flex: 1 }}
+      >
     <View style={styles.container}>
+      <BackButton />
       <View style={styles.mainContainer}>
         <View style={styles.otpText}>
           <Text style={styles.boldText}>OTP {`\n`}Confirmation</Text>
@@ -61,6 +67,7 @@ export default function OTP() {
         </View>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

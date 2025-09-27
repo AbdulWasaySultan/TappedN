@@ -22,6 +22,15 @@ target 'TappedN' do
   )
 
   post_install do |installer|
+    # ✅ Fix C++ standard library issue
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+      end
+    end
+
+    # ✅ Keep react_native_post_install OUTSIDE the loop
     react_native_post_install(
       installer,
       config[:reactNativePath],
@@ -29,10 +38,3 @@ target 'TappedN' do
     )
   end
 end
-
-
-# linkage = ENV['USE_FRAMEWORKS']
-# if linkage != nil
-#   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-#   use_frameworks! :linkage => linkage.to_sym
-# end

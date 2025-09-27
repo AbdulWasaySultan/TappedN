@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '400',
-    color: '#42526EB2',
+    color: '#7B869A',
     alignSelf: 'flex-start',
     marginLeft: 18,
     marginBottom: 15,

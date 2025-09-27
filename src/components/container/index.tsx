@@ -18,8 +18,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     flexDirection: 'column',
-    justifyContent: 'center',
-    // backgroundColor : 'blue'
+    // justifyContent: 'center',
   },
 });
 
