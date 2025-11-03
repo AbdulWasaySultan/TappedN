@@ -1,3 +1,37 @@
+# # Resolve react_native_pods.rb with node to allow for hoisting
+# require Pod::Executable.execute_command('node', ['-p',
+#   'require.resolve(
+#     "react-native/scripts/react_native_pods.rb",
+#     {paths: [process.argv[1]]},
+#   )', __dir__]).strip
+
+# platform :ios, min_ios_version_supported
+# prepare_react_native_project!
+
+# linkage = ENV['USE_FRAMEWORKS']
+# if linkage != nil
+#   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+#   use_frameworks! :linkage => linkage.to_sym
+# end
+
+# target 'TappedN' do
+#   config = use_native_modules!
+
+#   use_react_native!(
+#     :path => config[:reactNativePath],
+#     # An absolute path to your application root.
+#     :app_path => "#{Pod::Config.instance.installation_root}/.."
+#   )
+
+#   post_install do |installer|
+#     react_native_post_install(
+#       installer,
+#       config[:reactNativePath],
+#       :mac_catalyst_enabled => false,
+#       # :ccache_enabled => true
+#     )
+#   end
+# end
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -8,33 +42,34 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-# ✅ Move this to the top — outside target and post_install
-use_frameworks! :linkage => :static
+$FirebaseSDKVersion = '12.4.0'
 
 target 'TappedN' do
   config = use_native_modules!
+  
+  use_frameworks! :linkage => :static
+  use_modular_headers!
+  $RNFirebaseAsStaticFramework = true
+  
+  pod 'Firebase/Core', '~> 12.4.0'
+  pod 'Firebase/Auth', '~> 12.4.0'
 
   use_react_native!(
     :path => config[:reactNativePath],
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    # ✅ Correct way to disable Fabric renderer
     :fabric_enabled => false
   )
-
-  post_install do |installer|
-    # ✅ Fix C++ standard library issue
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
-        config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
-      end
-    end
-
-    # ✅ Keep react_native_post_install OUTSIDE the loop
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
-  end
 end
+
+# ✅ post_install hook (outside target)
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+    end
+  end
+
+  react_native_post_install(installer, :mac_catalyst_enabled => true)
+end
+

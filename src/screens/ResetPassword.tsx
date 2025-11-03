@@ -61,7 +61,7 @@ export default function ResetPassword() {
 
   return (
     <ImageBackground
-      source={require('../assets/images/bg-image.png')}
+      source={require('../assets/images/Others/bg-image.png')}
       style={{ width: '100%', flex: 1 }}
     >
       <View style={styles.container}>
@@ -89,8 +89,8 @@ export default function ResetPassword() {
               <Image
                 source={
                   showPassword
-                    ? require('../assets/images/eye.png')
-                    : require('../assets/images/eye-off.png')
+                    ? require('../assets/images/Others/eye.png')
+                    : require('../assets/images/Others/eye-off.png')
                 }
                 style={styles.icon}
               />
@@ -116,8 +116,8 @@ export default function ResetPassword() {
               <Image
                 source={
                   retypeShowPassword
-                    ? require('../assets/images/eye.png')
-                    : require('../assets/images/eye-off.png')
+                    ? require('../assets/images/Others/eye.png')
+                    : require('../assets/images/Others/eye-off.png')
                 }
                 style={styles.icon}
               />

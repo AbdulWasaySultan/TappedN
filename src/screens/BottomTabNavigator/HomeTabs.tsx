@@ -9,12 +9,94 @@ import Settings from './Settings';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Image } from 'react-native';
 import { FontType } from '../../Components/Constants/FontType';
+import { useAuth } from '../../Context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 
 export default function HomeTabs() {
+  const {loading} = useAuth();
+
   return (
-    // <Tab.Navigator>
+   
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+
+          let iconSource;
+
+          if (route.name === 'Home') {
+            iconSource = focused
+              ? require('../../assets/images/HomeTabs/Home/home.png')   // dark/active
+              : require('../../assets/images/HomeTabs/Home/home-light.png'); // light/inactive
+          }
+          else if (route.name === 'BookingsDashboard') {
+            iconSource = focused
+              ? require('../../assets/images/HomeTabs/BookingsDashboard/bookings.png')
+              : require('../../assets/images/HomeTabs/BookingsDashboard/bookings-light.png'); 
+          } else if (route.name === 'Messages') {
+            iconSource = focused
+            ? require('../../assets/images/HomeTabs/Messages/messages.png')
+            : require('../../assets/images/HomeTabs/Messages/messages-light.png');
+          } else if (route.name === 'Notifications') {
+            iconSource = focused
+          ? require('../../assets/images/HomeTabs/Notifications/notifications.png')
+            : require('../../assets/images/HomeTabs/Notifications/notifications-light.png');
+          } else if (route.name === 'Settings') {
+            iconSource = focused
+            ? require('../../assets/images/HomeTabs/Settings/settings.png')
+            : require('../../assets/images/HomeTabs/Settings/settings-light.png');
+          }
+          return (
+            <Image
+              source={iconSource}
+              style={{
+                width: size,
+                height: size,
+                tintColor: color,
+                resizeMode: 'contain',
+              }}
+            />
+          )},
+        tabBarActiveTintColor: '#0D8056',
+        tabBarInactiveTintColor: '#42526E',
+        tabBarStyle: {
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#E0E0E0',
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 80,
+          paddingHorizontal: 20, // This adds left and right padding
+          elevation: 0, // Remove shadow on Android
+          shadowOpacity: 0, // Remove shadow on iOS
+        },
+        // tabBarLabelStyle: {
+        //   fontSize: FontType.medium,
+        //   fontWeight: '600',
+        //   textTransform: 'none',
+        //   marginTop: 4,
+        // },
+        tabBarShowLabel: false,
+        tabBarItemStyle: { 
+          paddingHorizontal: 8, // Equal spacing between tabs
+          marginHorizontal: 4, // Additional spacing between tabs
+        },
+
+      })}
+    >
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="BookingsDashboard" component={BookingsDashboard}/>
+      <Tab.Screen name="Messages" component={Messages}/>
+      <Tab.Screen name="Notifications" component={Notifications}/>
+      <Tab.Screen name="Settings" component={Settings}  />
+
+        
+    </Tab.Navigator>
+  );
+}
+
+ // <Tab.Navigator>
     //   <Tab.Screen
     //     name="Home"
     //     component={Home}
@@ -90,87 +172,12 @@ export default function HomeTabs() {
     //Or use the following code:
 
     //tab.navigator ka header false krdiya to header hide hogya
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconSource;
 
-          if (route.name === 'Home') {
-            iconSource = require('../../assets/images/HomeTabs/home.png');
-          } else if (route.name === 'BookingsDashboard') {
-            iconSource = require('../../assets/images/HomeTabs/bookings.png');
-          } else if (route.name === 'Messages') {
-            iconSource = require('../../assets/images/HomeTabs/messages.png');
-          } else if (route.name === 'Notifications') {
-            iconSource = require('../../assets/images/HomeTabs/notifications.png');
-          } else if (route.name === 'Settings') {
-            iconSource = require('../../assets/images/HomeTabs/settings.png');
-          }
-          return (
-            <Image
-              source={iconSource}
-              style={{
-                width: size,
-                height: size,
-                tintColor: color,
-                resizeMode: 'contain',
-              }}
-            />
-          )},
-        tabBarActiveTintColor: '#0D8056',
-        tabBarInactiveTintColor: '#42526E',
-        tabBarStyle: {
-          backgroundColor: 'white',
-          borderBottomWidth: 2,
-          borderBottomColor: '#00000020',
-          paddingBottom: 8,
-          paddingTop: 8,
-        //   height: 70,
-          paddingHorizontal: 12, // This adds left and right padding
-          // marginLeft : 20,
-        },
-   
-        tabBarIndicatorContainerStyle: { 
-          width: '100%', 
-          backgroundColor : 'blue',
-          marginHorizontal: 0,
-          // marginLeft : 20
-        },
-        tabBarIndicatorStyle: { 
-          // backgroundColor: '#FF7043', 
-          height: 4,
-          backgroundColor : 'green',
-          // marginLeft : 20
-        },
-        tabBarLabelStyle: {
-          fontSize: FontType.medium,
-          fontWeight: '600',
-          textTransform: 'none',
-          // marginLeft : 20,
-        //   backgroundColor : 'yellow',
-          width : 0
-        },
-        tabBarItemStyle: { 
-          width: 'auto', 
-          marginHorizontal: 4, // Additional spacing between tabs
-          paddingHorizontal: 8, // Equal spacing between tabs
-          maxWidth : 400,
-          // backgroundColor : 'red',
-        },
 
-      })}
-    >
-      <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="BookingsDashboard" component={BookingsDashboard}/>
-      <Tab.Screen name="Messages" component={Messages}/>
-      <Tab.Screen name="Notifications" component={Notifications}/>
-      <Tab.Screen name="Settings" component={Settings}  />
 
-        
-    </Tab.Navigator>
-  );
-}
+
+
+
    
 // yahan ham chahein to har screen ka header alag se remove krskte hein
  {/* <Tab.Screen name="Home" component={Home} options={{

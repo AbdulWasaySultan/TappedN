@@ -11,7 +11,7 @@ import BackButton from '../../Components/BackButton/BackButton';
 import { FontType } from '../../Components/Constants/FontType';
 import { Image, ImageProps } from 'react-native';
 import OrangeButton from '../../Components/OrangeButton';
-import { useNavigation,NavigationProp } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 
 const MyReview = () => {
   const [selectedStars, setSelectedStars] = useState(0);
@@ -19,7 +19,7 @@ const MyReview = () => {
   const navigation = useNavigation();
 
   const star = require('../../assets/images/Review/emptyStar.png');
-  const filledStar = require('../../assets/images/star.png');
+  const filledStar = require('../../assets/images/Others/star.png');
 
   const stars = [
     { id: 1, image: star, filledImage: filledStar },
@@ -77,7 +77,14 @@ const MyReview = () => {
             textAlignVertical="top"
           />
         </View>
-        <OrangeButton title='Post review' onPress={()=>{navigation.getParent()?.navigate('Reviews')}} style={styles.button}/>
+        <OrangeButton
+          title="Post review"
+          onPress={() => {
+            navigation.getParent()?.navigate('Reviews');
+            // navigation.navigate('Reviews' as never);
+          }}
+          style={styles.button}
+        />
       </View>
     </View>
   );
@@ -159,11 +166,11 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 10,
   },
-  button:{
-    width : '92%',
-    alignSelf : 'center',
-    marginTop : 40,
-    marginBottom : 20,
-    borderRadius : 12
-  }
+  button: {
+    width: '92%',
+    alignSelf: 'center',
+    marginTop: 40,
+    marginBottom: 20,
+    borderRadius: 12,
+  },
 });

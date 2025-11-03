@@ -18,7 +18,8 @@ import {
 import {
   RootStackParamList,
   MyTabsParamList,
-  OutletData,     
+  OutletData,
+  allReviews,    
 } from '../navigation/navigation';
 
 import Services from './CompanyDetails/Services';
@@ -27,10 +28,11 @@ import BusinessInfo from './CompanyDetails/BusinessInfo';
 
 import BackButton from '../Components/BackButton/BackButton';
 import { FontType } from '../Components/Constants/FontType';
+import { useOutletContext } from '../Context/OutletContext';
 
 const Tab = createMaterialTopTabNavigator<MyTabsParamList>();
 
-const ServiceCompany = ({ outlet }: { outlet: OutletData }) => {
+const ServiceCompany = ({ outlet }: { outlet: OutletData}) => {
   return (
     <View style={{ backgroundColor: '#FFFFFF' }}>
       <BackButton />
@@ -55,7 +57,7 @@ const ServiceCompany = ({ outlet }: { outlet: OutletData }) => {
         <Text style={styles.outletName}>{outlet.outletName}</Text>
         <View style={styles.outletRating}>
           <Image
-            source={require('../assets/images/star.png')}
+            source={require('../assets/images/Others/star.png')}
             style={styles.starImage}
           />
           <Text style={styles.ratingText}>
@@ -68,10 +70,15 @@ const ServiceCompany = ({ outlet }: { outlet: OutletData }) => {
   );
 };
 
+
 export default function MyTabs() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'MyTabs'>>();
-  const {outletData} =  route.params
+  // const {outletData, serviceReviews, outletReviews} =  route.params
+  const {outletId} = route.params;
+  const {getOutletById} = useOutletContext();
+  const outletData = getOutletById(outletId);
+
 
 
   // console.log(serviceData);
@@ -105,26 +112,37 @@ export default function MyTabs() {
           tabBarInactiveTintColor: '#42526E',
         }}
       >
-        <Tab.Screen
-          name="Services"
-        //  component={Services}
-         children={() => <Services outletData={outletData} />}
-        />
+       <Tab.Screen
+        name="Services" 
+        children={() => <Services outletId={outletId}/>}
+       />
 
-        <Tab.Screen
-          name="Business Info"
-          // component={BusinessInfo}
-          children={() => <BusinessInfo outletData={outletData}/>}
-        />
+        {/* // // The children function receives { route, navigation } as arguments
+        // // children={({ route }) => (
+        //   // route.params will contain { outletData: ... }
+        //   // The ?. handles cases where route.params might be undefined 
+        //   // (though it shouldn't be, the component itself expects the data)
+        //   <Services  */}
 
-        <Tab.Screen name="Reviews" 
-        // component={Reviews} 
-        children={() => 
-          <Reviews 
-          outletData={outletData}
-          outletReviews={outletData.outletReviews}
-        />} 
-        />
+      {/* <Tab.Screen
+        name="Business Info"
+        children={({ route }) => (
+          <BusinessInfo 
+            outletData={route.params?.outletData} 
+          />
+        )}
+      /> */}
+
+<Tab.Screen
+        name="Business Info"
+        children={() => <BusinessInfo outletId={outletId}/>}
+          />
+         <Tab.Screen
+        name="Reviews"
+        children={() => <Reviews outletId={outletId}/>}
+            />
+
+        
       </Tab.Navigator>
     </View>
   );
@@ -146,12 +164,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     backgroundColor: 'white',
-    borderRadius: 30,
-    marginTop: -26,
+    borderRadius: 26,
+    marginTop: -35,
   },
   outletIcon: {
-    width: 120,
-    height: 120,
+    width: 110,
+    height: 110,
     marginTop: -50,
   },
   outletName: {
@@ -166,8 +184,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: 95,
     height: 30,
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 20,
     alignSelf: 'center',
     // backgroundColor : 'red'
   },
@@ -179,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: FontType.medium,
     fontWeight: '600',
     color: '#42526E',
-    marginTop: 2,
+    marginTop: 1,
   },
   ratingText2: {
     fontSize: FontType.medium,

@@ -19,8 +19,14 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import { ImageSourcePropType } from 'react-native';
-import axios from 'axios';
+import { fetchAllOutlets } from '../API/api';
+import { useOutletContext } from '../Context/OutletContext';
+import { Dimensions } from 'react-native';
+
 // import { useLocation } from '';
+
+const {width, height} = Dimensions.get('window');
+const isSmallScreen = height < 800;
 
 export default function Home() {
   const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
@@ -30,13 +36,36 @@ export default function Home() {
   const [outlets, setOutlets] = useState<OutletData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const apiUrl = 'https://mocki.io/v1/717e95ff-cf5d-4715-9aa4-3ada93502a22';
+
+
+  useEffect(() => {
+
+  const fetchAndSetOutlets = async () => {
+    try{
+      setLoading(true)
+   const result = await fetchAllOutlets();
+   setOutlets(result)
+   setError(null);
+    }
+    catch(error : any){
+      console.log(error.message);
+      setError(error.message);
+      setLoading(false)
+    }
+    finally{
+      setLoading(false)
+    }
+
+  }
+  fetchAndSetOutlets();
+  }, []);
+
 
   const handleSearch = () => {
     console.log('searchServices', searchServices);
   };
   const handleViewAll = () => {
-    navigation.navigate('ChangePassword');
+    navigation.navigate('Subscription');
   };
   const renderOutlets = ({ item }: { item: OutletData }) => {
     return (
@@ -44,8 +73,9 @@ export default function Home() {
         // onPress={() => navigation.navigate({serviceName})}
         style={[styles.serviceTouchableContainer]}
         onPress={() =>
-          navigation.navigate('MyTabs', {
-              outletData: item,
+          navigation.navigate(
+            'MyTabs', {
+              outletId: item.id,
           })
         }
       >
@@ -53,7 +83,6 @@ export default function Home() {
           item.outletBgImage
           ? {uri : item.outletBgImage as string} 
           : require('../assets/images/OutletHairTreatment/hairCuts.png')} 
-          key={item.id}
           style={styles.serviceImage} 
           resizeMode="cover"
           />
@@ -61,7 +90,7 @@ export default function Home() {
         <View style={styles.serviceDetailsColumn}>
           <View style={styles.serviceDetailsRow}>
             <View style={styles.serviceName}>
-              <Text style={styles.serviceNameText} key={item.id}>
+              <Text style={styles.serviceNameText}>
                 {item.services.length > 0 ? 
                 item.services[0].serviceName : 'no service'}
               </Text>
@@ -93,30 +122,31 @@ export default function Home() {
     );
   };
 
-useEffect(() => {
+// useEffect(() => {
 
-  const fetchOutlets = async () => {
-    try{
-      setLoading(true)
-      setError(null)
-  const response = await axios.get(apiUrl)
-  if (response.data && Array.isArray(response.data.outlets)) {
-    setOutlets(response.data.outlets);
-    console.log("API Data:", JSON.stringify(response.data, null, 2));
-  } else {
-    setError('Invalid data format received from API');
-    console.log("API Data:", JSON.stringify(response.data, null, 2));
-  }  
-    } catch (error) {
-      console.log(error,error)
-    }
-    finally{
-      setLoading(false);
-    }
-  }
-  fetchOutlets()
-}, []);
-
+//   const fetchOutlets = async () => {
+//     try{
+//       setLoading(true)
+//       setError(null)
+//   const response = await api.get('/outlets')
+//   if (response.data && Array.isArray(response.data.outlets)) {
+//     setOutlets(response.data.outlets);
+//     console.log("API Data:", JSON.stringify(response.data, null, 2));
+//   } else {
+//     console.log('Invalid data format received from API');
+//     console.log(error)
+//     setError(error)
+//     console.log("API Data:", JSON.stringify(response.data, null, 2));
+//   }  
+//     } catch (error) {
+//       console.log(error,error)
+//     }
+//     finally{
+//       setLoading(false);
+//     }
+//   }
+//   fetchOutlets()
+// }, []);
 
   const serviceCategories = [
     {
@@ -171,7 +201,6 @@ useEffect(() => {
     return (
       <TouchableOpacity
         style={styles.itemContainer}
-        // key={item.id}
         onPress={onPress}
         activeOpacity={0.7}
       >
@@ -220,7 +249,7 @@ if(loading){
                   source={
                     selectedProfileImage
                       ? { uri: selectedProfileImage }
-                      : require('../assets/images/profile.png')
+                      : require('../assets/images/Others/profile.png')
                   }
                   style={styles.userImage}
                 />
@@ -262,7 +291,7 @@ if(loading){
             <TouchableOpacity onPress={handleViewAll} style={styles.viewAll}>
               <Text style={styles.boldUnderlined}>{`View all>`}</Text>
             </TouchableOpacity>
-            // Service Categories
+            {/* Service Categories */}
             <View style={styles.servicesRowContainer}>
               <FlatList
                 data={serviceCategories}
@@ -270,7 +299,28 @@ if(loading){
                 renderItem={({ item }) => (
                   <ServiceCategoryItem
                     item={item}
-                    onPress={() => navigation.navigate('Filters')}
+                    onPress={() => {
+                      // Handle navigation based on screen name
+                      switch (item.screen) {
+                        case 'Estheticians':
+                          navigation.navigate('Estheticians');
+                          break;
+                        case 'MusicStudio':
+                          navigation.navigate('MusicStudio');
+                          break;
+                        case 'Handyman':
+                          navigation.navigate('Handyman');
+                          break;
+                        case 'Barbers':
+                          navigation.navigate('Barbers');
+                          break;
+                        case 'Yoga':
+                          navigation.navigate('Yoga');
+                          break;
+                        default:
+                          console.log('Unknown screen:', item.screen);
+                      }
+                    }}
                   />
                 )}
                 horizontal={true}
@@ -367,6 +417,7 @@ const styles = StyleSheet.create({
     fontSize: FontType.xtraLarge,
     marginLeft: 16,
     fontFamily: 'Montserrat-Bold',
+    fontWeight: '800',
     marginHorizontal: 1,
   },
   userImage: {
@@ -424,12 +475,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     alignItems: 'flex-end',
     marginRight: '3%',
-    marginTop: '6%',
+    marginTop: '10%',
   },
   viewAllText: {
-    fontSize: FontType.regular,
+    fontSize: isSmallScreen ? FontType.medium : FontType.regular,
     fontFamily: 'Montserrat-Regular',
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#F27122',
   },
   boldUnderlined: {
@@ -455,7 +506,7 @@ const styles = StyleSheet.create({
     // backgroundColor: 'blue',
     // marginLeft: 6,
     // marginRight: 8,
-    marginHorizontal : 7,
+    marginHorizontal : isSmallScreen? 4 : 7,
     flex: 1,
       // 👈 fixed width so text & icon align
   },
@@ -609,6 +660,7 @@ marginHorizontal : 10,
     fontFamily: 'Montserrat-Regular',
     fontWeight: '500',
     color: '#42526E',
+    marginBottom : 6
   },
   serviceDetailsPriceTextBold: {
     fontSize: FontType.xxxlarge,

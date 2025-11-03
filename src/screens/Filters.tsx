@@ -263,9 +263,12 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: '#fff',
+    flex: 1,
+    alignItems: 'center',
   },
   titleContainer: {
-    left: 90,
+    left: 84,
+    top : -7,
     position: 'absolute',
     justifyContent: 'center',
     // backgroundColor : 'pink',
@@ -273,8 +276,9 @@ const styles = StyleSheet.create({
   title: {
     color: '#F27122',
     fontSize: FontType.title,
-    fontFamily: 'Montserrat-SemiBold',
-    marginTop: 80,
+    fontFamily: 'Montserrat-Bold',
+    fontWeight : '600',
+    marginTop: 78 ,
   },
   mainContainer: {
     // backgroundColor: 'red',

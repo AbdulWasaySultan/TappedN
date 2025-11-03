@@ -14,21 +14,32 @@ import {
   OutletData,
 } from '../../Navigation/navigation';
 // import { useRoute, RouteProp } from '@react-navigation/native';
+import { useOutletContext } from '../../Context/OutletContext';
 
-export default function BusinessInfo({
-  outletData,
-}: {
-  outletData: OutletData;
-}) {
+type BusinessInfoProps = {
+  outletId: string;
+};
+
+export default function BusinessInfo({ outletId }: BusinessInfoProps) {
+  const { getOutletById } = useOutletContext();
+  const outletData = getOutletById(outletId);
+
+  if (!outletData) {
+    return (
+      <View style={styles.container}>
+        <Text>No outlet data available</Text>
+      </View>
+    );
+  }
+
   // const route = useRoute<RouteProp<MyTabsParamList, 'BusinessInfo'>>();
   // const { outletData } = route.params;
 
-  const outletpics =  [
+  const outletpics = [
     require('../../assets/images/BusinessInfo/hairTreatment.png'),
     require('../../assets/images/BusinessInfo/hairCuts.png'),
-    require('../../assets/images/BusinessInfo/picture1.png')
-  ]
-
+    require('../../assets/images/BusinessInfo/picture1.png'),
+  ];
 
   // const outletpic2 =  require('../../assets/images/BusinessInfo/hairCuts2.png');
   // const outletpic3 =  require('../../assets/images/BusinessInfo/hairCuts3.png');
@@ -43,43 +54,46 @@ export default function BusinessInfo({
   const icons = [icon1, icon2, icon3, icon4, icon5, icon6];
 
   const ServicePictures = () => {
+    return outletData.photos
+      ? outletData.photos.map((photo, index) => (
+          <Image
+            key={photo.id || index}
+            source={{ uri: photo.servicePicture }}
+            style={styles.picture}
+            resizeMode="cover"
+          />
+        ))
+      : outletpics.map((pics, index) => (
+          <Image
+            key={index}
+            source={pics}
+            style={styles.picture}
+            resizeMode="cover"
+          />
+        ));
+  };
+
+  type BusinessInfoScreenProps = MyTabsParamList['Business Info'];
+
+  const RenderBusinessDetails = ({
+    details,
+  }: {
+    details?: BusinessDetails[];
+  }) => {
     return (
       <>
-    {/* if(outletData.photos){
-    outletData.photos.map((photo, index) => (
-      <Image
-        key={photo.id || index}
-        source={{ uri: photo.servicePicture as string }}
-        style={styles.picture}
-        resizeMode='cover'
-      />
-    ))
-  }else  */}
-    {
-      outletpics.map((pics,index) => (
-        <Image source={pics} key={index}
-        style={styles.picture}
-        resizeMode='cover'/>
-      ))
-    }
-    </>
-  )}
-
-  const RenderBusinessDetails = ({details}: {details?: BusinessDetails[]}) => {
-    return(
-      <>
-        {icons?.map((businessIcon,index) => {
-        const description = details?.[index]?.description || 'No details available';
-         return(
-          <View key={index} style={styles.businessDetailsRow}>
-          <Image source={businessIcon} style={styles.icon}/>
-          <Text style={styles.description}>{description}</Text>
-          </View>
-            )
-          })
-        }
-        </>
-      )
+        {icons?.map((businessIcon, index) => {
+          const description =
+            details?.[index]?.description || 'No details available';
+          return (
+            <View key={index} style={styles.businessDetailsRow}>
+              <Image source={businessIcon} style={styles.icon} />
+              <Text style={styles.description}>{description}</Text>
+            </View>
+          );
+        })}
+      </>
+    );
   };
 
   // if(details && details.length > 0){
@@ -108,11 +122,11 @@ export default function BusinessInfo({
     >
       <View style={styles.mainContainer}>
         <View style={styles.aboutContainer}>
-        <Text style={styles.title}>About</Text>
-        <Text style={[styles.description, { marginTop: 10 }]}>
-          Location Permission will be required to view the nearby providers.{' '}
-        </Text>
-      <Text style={[styles.title, { marginTop: 14 }]}>Pictures</Text>
+          <Text style={styles.title}>About</Text>
+          <Text style={[styles.description, { marginTop: 10 }]}>
+            Location Permission will be required to view the nearby providers.{' '}
+          </Text>
+          <Text style={[styles.title, { marginTop: 14 }]}>Pictures</Text>
         </View>
         <View style={styles.pictureContainer}>
           <ServicePictures />
@@ -127,19 +141,19 @@ export default function BusinessInfo({
             Business Details
           </Text>
           <RenderBusinessDetails details={outletData.businessDetails} />
-          </View>
-
-          <View style={styles.viewDirectionContainer}>
-            <TouchableOpacity style={styles.viewDirection}>
-              <Text style={styles.orangeText}>View Direction In Map</Text>
-            </TouchableOpacity>
-            <Image
-              source={require('../../assets/images/BusinessInfo/phone.png')}
-              style={styles.phoneIcon}
-            />
-          </View>
-          {/* <Text>{outletData.outletName}</Text> */}
         </View>
+
+        <View style={styles.viewDirectionContainer}>
+          <TouchableOpacity style={styles.viewDirection}>
+            <Text style={styles.orangeText}>View Direction In Map</Text>
+          </TouchableOpacity>
+          <Image
+            source={require('../../assets/images/BusinessInfo/phone.png')}
+            style={styles.phoneIcon}
+          />
+        </View>
+        {/* <Text>{outletData.outletName}</Text> */}
+      </View>
     </ScrollView>
   );
 }
@@ -151,7 +165,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  aboutContainer:{
+  aboutContainer: {
     marginHorizontal: 10,
     marginTop: 20,
     // backgroundColor: 'pink',
@@ -159,12 +173,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontType.xlarge,
     fontWeight: 'bold',
-    marginLeft : 5
+    marginLeft: 5,
   },
   description: {
     fontSize: FontType.regular,
     color: '#42526E',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   mainContainer: {
     backgroundColor: 'white',
@@ -187,8 +201,8 @@ const styles = StyleSheet.create({
     width: 85,
     height: 85,
     borderRadius: 15,
-    alignSelf : 'flex-start',
-    marginLeft : 16
+    alignSelf: 'flex-start',
+    marginLeft: 16,
   },
   icon: {
     width: 24,
@@ -206,12 +220,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     marginBottom: 15,
-    marginLeft: 6,
+    marginLeft: 8,
   },
   viewDirectionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignSelf : 'center',
+    alignSelf: 'center',
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 30,
@@ -222,7 +236,7 @@ const styles = StyleSheet.create({
     borderColor: '#F27122',
     borderWidth: 1.5,
     borderRadius: 10,
-    marginLeft : 8,
+    marginLeft: 8,
     marginRight: 15,
     alignSelf: 'center',
     paddingHorizontal: 50,

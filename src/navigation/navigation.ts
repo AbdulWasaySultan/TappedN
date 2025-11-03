@@ -21,8 +21,8 @@ export type OutletData = {
   businessDetails: BusinessDetails[];
 
   outletRating: OutletRating; // "id": 1,// "ratingStars": 5, // "reviews": 239
-  outletReviews: OutletReview[];
-  serviceReviews: ServiceReviews[];
+  reviews: allReviews[];
+  // serviceReviews: ServiceReviews[];
 };
 
 export type ServicesData = {
@@ -34,12 +34,35 @@ export type ServicesData = {
   serviceDetails: ServiceDetail;
   serviceRating: OutletRating;
 };
+// users: [
+//   {
+//   id: 'u1',
+//   image:'https://chatgpt.com/s/m_68efa0f55874819190b61f2ccfcfc477',
+//     name: 'Ali',
+//     message: 'can u send me the design pics',
+//     time: '3hr ago',
+//   },
+//   {
+//   id: 'u2',
+//   image:'https://chatgpt.com/s/m_68efa62a2ea48191bae7f266e3915741',
+//     name: 'zohaib',
+//     message: 'can u send me the design pics',
+//     time: '8hr ago',
+//   },
 
+// {
+//   id: 'u3',
+//   image:'https://chatgpt.com/s/m_68efa62a2ea48191bae7f266e3915741',
+//     name: 'Andrew Benjamin',
+//     message: 'can u send me the design pics',
+//     time: '1 min ago',
+// }
+// ]
 // Extra details for a service
 export type ServiceDetail = {
   id: string;
   serviceDuration: string;
-  serviceBookingType: string;
+  serviceBookingType : string;
 };
 
 export type Photo = {
@@ -59,14 +82,15 @@ export type OutletRating = {
   reviews: number;
 };
 
-export type OutletReview = {
+export type allReviews = {
   id: string;
-  outletId : string;
   name: string;
   ratingStars: number;
   description: string;
   time: string;
   profileImage: string;
+
+  serviceId: string | null;
   // outletRating: OutletRating[];
 };
 
@@ -76,39 +100,52 @@ export type OutletReview = {
 // service reviews mein daala ha kyunke agar kisi user 
 // ne kisi service ko  general review dedia jese best location to ye
 // to usne outlet ki tareef ki na to isliye aesa kiya ha
-export type ServiceReviews = {
-  id: string;
-  serviceId: string; // to know which service this review belongs to
-  outletId: string;  // to cross-check if needed
-  name: string;
-  ratingStars: number;
-  description: string;
-  time: string;
-  profileImage: string;
-};
+// export type ServiceReviews = {
+//   id: string;
+//   serviceId: string; // to know which service this review belongs to
+//   outletId: string;  // to cross-check if needed
+//   name: string;
+//   ratingStars: number;
+//   description: string;
+//   time: string;
+//   profileImage: string;
+// };
 
 
 export type MyTabsParamList = {
   Services: {
-    outletData: OutletData; // This contains everything needed including services and photos
-    serviceReviews: ServiceReviews[];
+    // outletData: OutletData; // This contains everything needed including services and photos
+    // serviceReviews: ServiceReviews[];
+    outletId : string;
   };
   'Business Info': {
-    outletData: OutletData;
+    // outletData: OutletData;
+    //     serviceReviews: ServiceReviews[];
+    outletId : string;
   };
   Reviews: {
-    outletData: OutletData; // Reviews might need outlet data for context
-    outletReviews: OutletReview[];
+    // outletData: OutletData; // Reviews might need outlet data for context
+    // outletReviews: OutletReview[];
+    outletId : string;
   };
 };
+
+// type Users = {
+//   id: string;
+//   image: any;
+//   name: string;
+//   message: string;
+//   time: string;
+// };
 
 export type HomeTabsParamList = {
   Home: undefined;
   BookingsDashboard: undefined;
-  Messages: undefined;
+  // Messages : {
+  //  users: Users[];
+  // }
   Notifications: undefined;
   Settings: undefined;
-  ChangePassword: undefined;
 };
 
 // Define a type for your Root Stack Navigator screens and their parameters
@@ -132,10 +169,17 @@ export type RootStackParamList = {
   AppointmentConfirmed : undefined
 
   MyReview: undefined;
-  MyTabs: { outletData: OutletData };
-  ServiceDetails: { service: ServicesData; outlet: OutletData; serviceReviews: ServiceReviews[]};
-  ChangePassword: undefined;
+  MyTabs: { outletId: string};
+  // ServiceDetails: { service: ServicesData; outlet: OutletData; serviceReviews: ServiceReviews[]};
+   ServiceDetails: {outletId : string, serviceId : string};
+
   HomeTabs: undefined;
+  ChangePassword: undefined;
+  ProfileSettings: undefined;
+  PrivacyPolicy: undefined;
+  Subscription: undefined;
+  Loading: undefined;
+
 };
 
 // Screen props types
@@ -223,11 +267,6 @@ RootStackParamList,
 'AppointmentConfirmed'
 >;
 
-// export type ChangePasswordScreenProps = NativeStackScreenProps<
-//   SettingsParamList,
-//   'ChangePassword'
-// >;
-
 export type HomeTabsScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'HomeTabs'
@@ -242,10 +281,10 @@ export type BookingsDashboardScreenProps = NativeStackScreenProps<
   HomeTabsParamList,
   'BookingsDashboard'
 >;
-export type MessagesScreenProps = NativeStackScreenProps<
-  HomeTabsParamList,
-  'Messages'
->;
+// export type MessagesScreenProps = NativeStackScreenProps<
+//   HomeTabsParamList,
+//   'Messages'
+// >;
 export type NotificationsScreenProps = NativeStackScreenProps<
   HomeTabsParamList,
   'Notifications'
@@ -255,6 +294,28 @@ export type SettingsScreenProps = NativeStackScreenProps<
   'Settings'
 >;
 
+export type ChangePasswordScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'ChangePassword'
+>;
+export type ProfileSettingsScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'ProfileSettings'
+>;
+
+export type PrivacyPolicyScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'PrivacyPolicy'
+>;
+export type SubscriptionScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Subscription'
+>;
+
+export type LoadingScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Loading'
+>;
 /*
 {
 "outlets": [

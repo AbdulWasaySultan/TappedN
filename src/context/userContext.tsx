@@ -5,7 +5,6 @@ type UserContextType = {
   setUserFullName: (name: string) => void;
   selectedProfileImage: string | null;
   setSelectedProfileImage: (image: string | null) => void;
-
 };
 
 const UserContext = createContext<UserContextType>({

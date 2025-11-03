@@ -19,7 +19,7 @@ export default function OTP() {
   const [OTP, setOTP] = useState<string>('');
   return (
     <ImageBackground
-      source={require('../assets/images/bg-image.png')}
+      source={require('../assets/images/Others/bg-image.png')}
       style={{ width: '100%', flex: 1 }}
       >
     <View style={styles.container}>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   smallText: {
     fontSize: 14,
-    fontWeight: 'light',
+    fontWeight: '300',
     color: '#42526EB3',
     // alignSelf: 'flex-start',
     marginLeft: 12,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   smallText2: {
     fontSize: 16,
-    fontWeight: 'light',
+    fontWeight: '300',
     color: '#42526EB3',
     marginTop: 2,
   },

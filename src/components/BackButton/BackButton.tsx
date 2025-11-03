@@ -9,11 +9,11 @@ export default function BackButton() {
   return (
     <TouchableOpacity
       onPress={() => navigation.goBack()}
-      style={styles.button}
+      style={[styles.button]}
       activeOpacity={0.7}
     >
       <Image
-        source={require('../../assets/images/backButton.png')} // <-- use your own icon here
+        source={require('../../assets/images/Others/backButton.png')} // <-- use your own icon here
         style={styles.icon}
         resizeMode='contain'
       />
@@ -23,8 +23,8 @@ export default function BackButton() {
 
 const styles = StyleSheet.create({
   button: {
-    position: 'absolute',
-    top: 90,     // adjust for SafeArea
+    position: 'absolute',    
+    top : 80,// adjust for SafeArea
     left: 28,
     zIndex: 1000,
     // backgroundColor : 'red',
