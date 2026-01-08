@@ -12,10 +12,10 @@ import { RootStackParamList } from '../Navigation/navigation';
 import CustomTextField from '../Components/TextField/index';
 import BackButton from '../Components/BackButton/BackButton';
 
-export default function ForgotPassword() {
+ function ForgotPassword() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const [email, setEmail] = useState<string>('');
+     const [email, setEmail] = useState<string>('');
   return (
     <ImageBackground
       source={require('../assets/images/Others/bg-image.png')}
@@ -48,14 +48,14 @@ export default function ForgotPassword() {
                 ]);
                 return;
               }
-              navigation.navigate('Login');
+              navigation.navigate('OTP', {email});
             }}
           >
             <Text style={styles.sendInstructionsText}>Send Instructions</Text>
           </TouchableOpacity>
 
           <View style={styles.rowCenter}>
-            <Text style={styles.smallText2}>Didn't Receive OTP?</Text>
+            <Text style={styles.smallText2}>Didn't Receive OTP? </Text>
             <TouchableOpacity
 
             //   onPress={() => {navigation.navigate('Login')}}
@@ -69,6 +69,8 @@ export default function ForgotPassword() {
     </ImageBackground>
   );
 }
+
+export default ForgotPassword
 
 const styles = StyleSheet.create({
   container: {
@@ -166,11 +168,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     color: '#42526EB3',
-    marginTop: 2,
+    marginTop: 0.7,
   },
   orangeText: {
     color: '#F27122',
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: '700',
   },
 });

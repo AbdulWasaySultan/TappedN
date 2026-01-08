@@ -60,8 +60,11 @@ const firebaseConfig = {
 if (getApps().length === 0) {
   initializeApp(firebaseConfig);  // Initialize Firebase
 }
-
 const app = getApp();
-// Export the auth and firestore instances
-export const authInstance = getAuth(app);
-export const dbInstance = getFirestore(app);
+
+// const app = initializeApp(firebaseConfig);
+
+const authInstance =  getAuth(app);
+const dbInstance =  getFirestore(app);
+
+export {authInstance, dbInstance}

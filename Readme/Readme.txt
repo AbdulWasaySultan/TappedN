@@ -444,8 +444,6 @@ outletRating : {
 
 
 
-
-
 {
 "outlets": [
 {
@@ -519,24 +517,19 @@ outletRating : {
 "icon": "https://example.com/assets/images/BusinessInfo/contact.png"
 },
 {
-"id": "3",
-"icon": "https://example.com/assets/images/BusinessInfo/contact.png",
-"description": "+1 (212) 555-0198"
-},
-{
 "id": "4",
-"icon": "https://example.com/assets/images/BusinessInfo/shop.png",
-"description": "Walk-in & Appointments"
+"description": "Walk-in & Appointments",
+"icon": "https://example.com/assets/images/BusinessInfo/shop.png"
 },
 {
 "id": "5",
-"icon": "https://example.com/assets/images/BusinessInfo/globeIcon.png",
-"description": "www.moderncutnyc.com"
+"description": "www.moderncutnyc.com",
+"icon": "https://example.com/assets/images/BusinessInfo/globeIcon.png"
 },
 {
 "id": "6",
-"icon": "https://example.com/assets/images/BusinessInfo/locationIcon.png",
-"description": "230 West 34th St, New York, NY"
+"description": "230 West 34th St, New York, NY",
+"icon": "https://example.com/assets/images/BusinessInfo/locationIcon.png"
 }
 ],
 "outletRating": {
@@ -566,6 +559,26 @@ outletRating : {
 "profileImage": "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&w=400&q=80"
 }
 ]
+}
+],
+"previousBookings": [
+{
+"id": "pb1",
+"outletId": "1",
+"image": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
+"title": "Haircut",
+"outletName": "Tony&Guy",
+"price": "$25",
+"schedule": "2025-08-01, 2:00 PM"
+},
+{
+"id": "pb2",
+"outletId": "1",
+"image": "https://images.unsplash.com/photo-1551854838-0c3b3c5b2d9b?auto=format&fit=crop&w=800&q=80",
+"title": "Window Cleaning",
+"outletName": "Tony&Guy",
+"price": "$18",
+"schedule": "2025-08-03, 12:30 PM"
 }
 ]
 }

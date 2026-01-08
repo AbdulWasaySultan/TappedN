@@ -13,15 +13,13 @@ import Handyman from './src/screens/serviceCategories/Handyman';
 import ForgotPassword from './src/screens/ForgotPassword';
 
 import AppointmentConfirmed from './src/screens/BookingDetails/AppointmentConfirmed';
-
-import { UserProvider } from './src/Context/userContext';
 import HairTreatment from './src/screens/HairTreatment';
 // import WindowService from './src/screens/WindowService';
 import ViewAll from './src/screens/serviceCategories/ViewAll';
 import Estheticians from './src/screens/serviceCategories/Estheticians';
 import MusicStudio from './src/screens/serviceCategories/Music Studio';
-import Barbers from './src/screens/serviceCategories/Barber';
 import Yoga from './src/screens/serviceCategories/Yoga';
+import Barbers from './src/screens/serviceCategories/Barbers';
 import MyTabs from './src/screens/MyTabs';
 import MyReview from './src/screens/CompanyDetails/MyReview';
 import ErrorBoundary from './src/Components/RenderError/ErrorBoundary';
@@ -35,10 +33,16 @@ import Settings from './src/screens/BottomTabNavigator/Settings';
 import Subscription from './src/screens/Subscription';
 import Loading from './src/screens/Loading';
 // import SearchResults from './src/screens/services/searchResults';
-import { AuthContextProvider } from './src/Context/AuthContext';
+// import { AuthContextProvider } from './src/Context/AuthContext';
 import { OutletContextProvider } from './src/Context/OutletContext'; 
+import { BookingContextProvider } from './src/Context/bookingContext';
+import MessagingScreen from './src/screens/BottomTabNavigator/Settings/MessagingScreen';
+import { RootStackParamList } from './src/Navigation/navigation';
+import { useServiceProviders } from './src/redux/useServiceProviders';
+import { Alert } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App() {
   // const [isSplashVisible, setIsSplashVisible] = useState(true);
@@ -54,11 +58,22 @@ function App() {
   //   return <Splash />;
   // }
 
+  const { fetchProviders } = useServiceProviders();
+
+  useEffect(() => {
+    fetchProviders(); // Load providers on app start
+
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+
+    return unsubscribe;
+  }, []);
   return (
     <ErrorBoundary>
-      <AuthContextProvider>
-        <UserProvider>
+      {/* <AuthContextProvider> */}
           <OutletContextProvider>
+            <BookingContextProvider>
           <NavigationContainer>
             <Stack.Navigator
               initialRouteName="Login"
@@ -111,17 +126,17 @@ function App() {
                 name="AppointmentConfirmed"
                 component={AppointmentConfirmed}
               />
-              <Stack.Screen name="Settings" component={Settings} />
-              <Stack.Screen name="Subscription" component={Subscription} />
-              <Stack.Screen name="Loading" component={Loading} />
+              <Stack.Screen name="ProfileSettings" component={ProfileSettings} />              
+              {/* <Stack.Screen name="Loading" component={Loading} /> */}
               <Stack.Screen name="ChangePassword" component={ChangePassword} />
-              <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
               <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+              <Stack.Screen name="Subscription" component={Subscription} />
+              <Stack.Screen name="MessagingScreen" component={MessagingScreen} />
             </Stack.Navigator>
           </NavigationContainer>
+          </BookingContextProvider>
           </OutletContextProvider>
-        </UserProvider>
-      </AuthContextProvider>
+      {/* </AuthContextProvider> */}
     </ErrorBoundary>
   );
 }

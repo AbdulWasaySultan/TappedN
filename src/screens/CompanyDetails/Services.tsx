@@ -125,6 +125,17 @@ const RenderServices = ({ outletId, serviceId }: RenderServicesProps) => {
     );
   }
 
+  const renderImages = (item : string) => {
+    switch(item) {
+      case 'Hair&Cut':
+        return require('../../assets/images/OutletHairTreatment/hairCuts.png');
+      case 'Window Cleaning':
+        return require('../../assets/images/OutletWindowCleaning/windowService.png');
+      default:
+        return require('../../assets/images/OutletHairTreatment/hairTreatment.png');
+    }
+  }
+
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   return (
     <TouchableOpacity
@@ -142,11 +153,11 @@ const RenderServices = ({ outletId, serviceId }: RenderServicesProps) => {
         })
       }
     >
-      <Image
+     <Image
         source={
           serviceData.serviceImage
             ? { uri: serviceData.serviceImage }
-            : require('../../assets/images/OutletHairTreatment/hairCuts.png')
+            : renderImages(serviceData.serviceName)
         }
         style={styles.serviceImage}
       />

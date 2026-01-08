@@ -53,6 +53,8 @@ target 'TappedN' do
   
   pod 'Firebase/Core', '~> 12.4.0'
   pod 'Firebase/Auth', '~> 12.4.0'
+  pod 'Firebase/Messaging', '~> 12.4.0'
+
 
   use_react_native!(
     :path => config[:reactNativePath],

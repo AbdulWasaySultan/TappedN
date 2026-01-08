@@ -2,12 +2,16 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import BackButton from '../Components/BackButton/BackButton';
 import { FontType } from '../Components/Constants/FontType';
 import { useSelector, useDispatch} from 'react-redux';
-import { increment, decrement, selectCount } from '../redux/counterSlice';
-
+// Removed unused imports - using userSlice now
+import type { RootState } from '../redux/store';
 export default function Subscription() {
 
-  const count = useSelector(selectCount)
-  const dispatch = useDispatch()
+  const userName = useSelector((state : RootState) => state.user.name)
+  const contactNumber = useSelector((state : RootState) => state.user.contactNo)
+  const email = useSelector((state : RootState) => state.user.email)
+  const address = useSelector((state : RootState) => state.user.address)
+
+  // const dispatch = useDispatch()
   return (
     <ScrollView style={styles.scrollView}>
          <BackButton />
@@ -18,15 +22,10 @@ export default function Subscription() {
         </View>
         
       </View>
-      <Text>Counter : {count}</Text>
-            <TouchableOpacity
-          onPress={() => dispatch(increment())}>
-            <Text>Increment</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-          onPress={() => dispatch(decrement())}>
-            <Text>Decrement</Text>
-          </TouchableOpacity>
+      <Text>Name : {userName}</Text>
+      <Text>Contact No: {contactNumber}</Text>
+      <Text>Email Address: {email}</Text>
+      <Text>Address: {address}</Text>
     </View>
     </ScrollView>
   );

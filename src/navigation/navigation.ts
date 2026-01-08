@@ -8,13 +8,16 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 //4. Fetch inside screen → for standalone screens, not tightly linked to navigation flow.
 
 // **CHANGE 1: Fixed ServicesData type - removed array notation**
-
 export type OutletData = {
   id: string;
   outletName: string;
   outletBgImage: string; // always from API
   outletIcon: string | number; // API string OR require() number
   rating: number;
+
+  // Service provider info (for messaging)
+  serviceProviderName?: string;
+  serviceProviderId : string;
 
   services: ServicesData[]; // Array of services
   photos: Photo[];
@@ -82,6 +85,7 @@ export type OutletRating = {
   reviews: number;
 };
 
+
 export type allReviews = {
   id: string;
   name: string;
@@ -137,13 +141,19 @@ export type MyTabsParamList = {
 //   message: string;
 //   time: string;
 // };
-
+// export type UserProfile = {
+//   id: string;
+//   name: string;
+//   profileImage: any;
+//   outletName?: string;
+//   contactNo : string;
+//   role: string;
+//   createdAt: any;
+// };
 export type HomeTabsParamList = {
   Home: undefined;
   BookingsDashboard: undefined;
-  // Messages : {
-  //  users: Users[];
-  // }
+  Messages: undefined;
   Notifications: undefined;
   Settings: undefined;
 };
@@ -153,8 +163,8 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
-  ResetPassword: undefined;
-  OTP: undefined;
+  ResetPassword: {email: string};
+  OTP: {email: string};
   Home: undefined;
   Handyman: undefined;
   Estheticians: undefined;
@@ -165,8 +175,12 @@ export type RootStackParamList = {
   Filters: undefined;
   WindowService: undefined;
   HairTreatment: undefined;
-  BookAppointment : undefined;
-  AppointmentConfirmed : undefined
+  BookAppointment : {
+    outletId : string;
+    serviceId : string;
+
+  };
+  AppointmentConfirmed : undefined;
 
   MyReview: undefined;
   MyTabs: { outletId: string};
@@ -179,6 +193,7 @@ export type RootStackParamList = {
   PrivacyPolicy: undefined;
   Subscription: undefined;
   Loading: undefined;
+  MessagingScreen: { chatId: string; serviceProvider: { uid: string; name: string; profileImage: string; outletName?: string } };
 
 };
 
@@ -316,6 +331,16 @@ export type LoadingScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Loading'
 >;
+
+export type MessagingScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'MessagingScreen'
+>;
+
+export type MessagesScreenProps = NativeStackScreenProps<
+  HomeTabsParamList,
+  'Messages'
+>;  
 /*
 {
 "outlets": [

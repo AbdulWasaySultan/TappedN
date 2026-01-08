@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,64 +20,119 @@ import {
   launchImageLibrary,
   MediaType,
 } from 'react-native-image-picker';
-import { useUser } from '../../../Context/userContext';
+
 import BackButton from '../../../Components/BackButton/BackButton';
-import { useAuth } from '../../../Context/AuthContext';
+import { RootState, AppDispatch } from '../../../redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateProfile } from '../../../redux/userSlice';
+import { ActivityIndicator } from 'react-native';
+import { authInstance,dbInstance } from '../../Firebase/firebaseConfig';
 
 export default function ProfileSettings() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state : RootState) => state.user);
+
+
+  useEffect(() => {
+    // Check if user exists and has values before setting
+    if (user.isLoggedIn) {
+      setFullName(user.name || '');
+      setEmail(user.email || '');
+      setContactNo(user.contactNo || '');
+      setAddress(user.address || '');
+      setSelectedImage(user.profileImage || null);
+    }
+  }, [user]); // Re-runs whenever ANY part of the user object in Redux changes
+
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>('Dave Parker');
   const [FullNameIsFocused, setFullNameIsFocused] = useState<boolean>(false);
-  const [contactNo, setContactNo] = useState<number | undefined>(undefined);
+  const [contactNo, setContactNo] = useState<string>('');
   const [contactNoFieldIsFocused, setContactNoFieldIsFocused] =
     useState<boolean>();
   const [email, setEmail] = useState<string>('');
-  const [address, setAddress] = useState<string>('');
   const [emailFieldIsFocused, setEmailFieldIsFocused] =
     useState<boolean>(false);
-  const [addressFieldIsFocused, setAddressFieldIsFocused] = useState<boolean>(false);
-  const { setUserFullName, setSelectedProfileImage } = useUser();
-  const { updateProfile, user } = useAuth();
+  const [address, setAddress] = useState<string>('');
+  const [addressFieldIsFocused, setAddressFieldIsFocused] =
+    useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
 
+  const handleChangeContactNo = (text: string) => {
+    const cleanedText = text.replace(/[^\d+]/g, '');
+    setContactNo(cleanedText);
+  };
 
   const showEmailIcon = (iconStyle: ImageStyle) => {
     return (
-      <TouchableOpacity
-        style={styles.iconContainer}
-      >
+      <TouchableOpacity style={styles.iconContainer} activeOpacity={1}>
         <Image
-          source={
-             require('../../../assets/images/Others/email-id.png')
-          }
+          source={require('../../../assets/images/Others/email-id.png')}
           style={iconStyle}
         />
       </TouchableOpacity>
     );
   };
-  const handleUpdate = async () => {
-    if (!selectedImage) {
-      Alert.alert('Please select a profile image');
-      return;
-    } 
-    if (!contactNo) {
-      Alert.alert('Please enter a contact number');
+  
+
+const handleUpdate = async () => {
+  if (!fullName.trim()) {
+    Alert.alert('Validation Error', 'Please enter your name');
+    return;
+  }
+  if (!email.trim()) {
+    Alert.alert('Validation Error', 'Please enter your email');
+    return;
+  }
+
+  setLoading(true);
+  
+  try {
+    const firebaseUser = authInstance.currentUser;
+    if (!firebaseUser || !user.uid) {
+      Alert.alert('Error', 'User not logged in');
+      setLoading(false);
       return;
     }
-    if (!address) {
-      Alert.alert('Please enter an address');
-      return;
+
+    const updatedData = {
+      name: fullName,
+      email: email,
+      contactNo: contactNo,
+      address: address,
+      profileImage: selectedImage || '',
+    };
+
+    // 1. Update Firestore (always works)
+    await dbInstance.collection('users').doc(user.uid).set(updatedData, { merge: true });
+
+    // 2. Update Redux immediately (for instant UI update)
+    dispatch(updateProfile(updatedData));
+
+    // 3. Try to update Firebase Auth email if it changed
+    if (email !== firebaseUser.email) {
+      try {
+        // Try to update email (may require reauthentication)
+        await firebaseUser.updateEmail(email);
+      } catch (emailError: any) {
+        // If email update fails, that's okay - Firestore has the new email
+        // User will use new email on next login
+        console.log('Email update requires reauthentication:', emailError.message);
+      }
     }
-    if (!email) {
-      Alert.alert('Please enter an email');
-      return;
-    }
-    await updateProfile(fullName, selectedImage, email, contactNo, address);
-    setUserFullName(fullName);
-    setSelectedProfileImage(selectedImage);
-    navigation.navigate('HomeTabs');
-  };
+    Alert.alert('Success', 'Profile updated successfully!');
+    navigation.goBack();
+  } catch (error: any) {
+    Alert.alert('Update Error', error.message || 'Failed to update profile');
+  } finally {
+    setLoading(false);
+  }
+};
+      // // (Update context) i am not using usercontext files method anymore
+      // setUserFullName(fullName);
+      // setSelectedProfileImage(selectedImage);
 
   const handleImageUpload = () => {
     Alert.alert(
@@ -86,16 +141,14 @@ export default function ProfileSettings() {
       [
         {
           text: 'Select From Gallery',
-          onPress: () => 
-            openGallery(),
+          onPress: () => openGallery(),
         },
         {
           text: 'Take a Photo',
-          onPress: () => 
-            openCamera(),
+          onPress: () => openCamera(),
         },
-        { text: 'Cancel'},
-       ],
+        { text: 'Cancel' },
+      ],
       { cancelable: true },
     );
   };
@@ -142,7 +195,7 @@ export default function ProfileSettings() {
     >
       <ScrollView>
         <View style={styles.container}>
-        <BackButton />
+          <BackButton />
           <View style={styles.topContainer}>
             <Text style={styles.boldText}>Profile Setting</Text>
 
@@ -194,7 +247,7 @@ export default function ProfileSettings() {
                 style={styles.input}
                 label="Name"
                 value={fullName}
-                onChangeText={(text) => setFullName(String(text))}
+                onChangeText={text => setFullName(String(text))}
                 // onSubmitEditing={handleLogin}
                 onFocus={() => setFullNameIsFocused(true)}
                 onBlur={() => setFullNameIsFocused(false)}
@@ -207,7 +260,7 @@ export default function ProfileSettings() {
                 label="Contact Number"
                 style={styles.input}
                 value={contactNo}
-                onChangeText={(text) => setContactNo(Number(text))}
+                onChangeText={handleChangeContactNo}
                 keyboardType="phone-pad"
                 isFocused={contactNoFieldIsFocused}
                 onFocus={() => setContactNoFieldIsFocused(true)}
@@ -219,7 +272,7 @@ export default function ProfileSettings() {
                 label="Email Address"
                 style={styles.input}
                 value={email}
-                onChangeText={(text) => setEmail(String(text))}
+                onChangeText={text => setEmail(String(text))}
                 onFocus={() => setEmailFieldIsFocused(true)}
                 onBlur={() => setEmailFieldIsFocused(false)}
                 isFocused={emailFieldIsFocused}
@@ -230,7 +283,7 @@ export default function ProfileSettings() {
                 label="Address"
                 style={styles.input}
                 value={address}
-                onChangeText={(text) => setAddress(String(text))  }
+                onChangeText={text => setAddress(String(text))}
                 // onSubmitEditing={handleLogin}
                 onFocus={() => setAddressFieldIsFocused(true)}
                 onBlur={() => setAddressFieldIsFocused(false)}
@@ -242,13 +295,19 @@ export default function ProfileSettings() {
           <View style={styles.bottomContainer}>
             <TouchableOpacity
               style={styles.updateButton}
-              onPress={() => handleUpdate()}
+              onPress={handleUpdate}
             >
               <Text style={styles.updateButtonText}>Update</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+      {loading && 
+      <View style={styles.loadingOverlay}>
+      <ActivityIndicator size="large" color="#FF8C00"/>
+        <Text style={{ color: '#FFF', marginTop: 10 }}>Saving the Changes...</Text>
+      </View>
+      }
     </ImageBackground>
   );
 }
@@ -262,7 +321,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   topContainer: {
-maxHeight : 500,
+    maxHeight: 500,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     // backgroundColor: '#cdcdcd',
@@ -372,13 +431,16 @@ maxHeight : 500,
     //  backgroundColor: 'yellow'
   },
   updateButton: {
+    flexDirection: 'row',
     backgroundColor: '#F27122',
     borderRadius: 10,
     paddingVertical: 17,
-    marginTop: 35,
+    // marginTop: 20,
     // marginBottom: 50,
     width: '92%',
     alignItems: 'center',
+    justifyContent: 'center',
+    height: 57
   },
   orangeText: {
     color: '#F27122',
@@ -421,5 +483,12 @@ maxHeight : 500,
     position: 'absolute',
     right: 19.5,
     top: -25,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject, // Covers the whole screen
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dimmed background
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10, // Sits on top of everything
   },
 });

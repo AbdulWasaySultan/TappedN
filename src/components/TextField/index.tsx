@@ -20,6 +20,7 @@ interface Props extends TextInputProps {
   onSubmitEditing?: () => void;
   secureTextEntry?: boolean;
   
+
 }
 
 const CustomTextField: React.FC<Props> = ({

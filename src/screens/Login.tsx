@@ -18,12 +18,19 @@ import {
   NavigationContainer,
 } from '@react-navigation/native';
 import { RootStackParamList } from '../Navigation/navigation';
-import { useAuth } from '../Context/AuthContext'; 
+// import { useAuth } from '../Context/AuthContext'; 
 
 import { Dimensions } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
+import { useDispatch } from 'react-redux';
+import { setUser } from '../redux/userSlice';
+import { AppDispatch } from '../redux/store';
+import { authInstance, dbInstance } from './Firebase/firebaseConfig';
+
 const {width, height} = Dimensions.get('window');
+
+
 
 
 // export default function Login() {
@@ -153,15 +160,17 @@ const {width, height} = Dimensions.get('window');
 
 export default function Login() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { login, loading } = useAuth();
+  // const { login, loading,fetchUserProfileFromFirebase } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailFieldIsFocused, setEmailFieldIsFocused] = useState(false);
   const [passwordFieldIsFocused, setPasswordFieldIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false)
+  const dispatch = useDispatch<AppDispatch>();
 
   const ResetPassword = () => {
-    navigation.navigate('ResetPassword');
+    navigation.navigate('ForgotPassword');
   };
 
   //  const preload = async () => {
@@ -185,26 +194,69 @@ export default function Login() {
   // };
 
   // Handle the login process
+
+  const handleLoginWithoutInternet = () => {
+          navigation.navigate('HomeTabs');
+  }
+
   const handleLogin = async () => {
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
     if (!email || !password) {
       Alert.alert('Empty Fields', 'Please enter email and password.', [{ text: 'OK' }]);
       return;
     }
 
-    try {
-      await login(email, password);
-      
-      // Preload data for next screen before navigation
-      // await preload();
+    // try {
+    //   await login(email, password);
 
-      // Navigate to the next screen
+    //   dispatch(
+    //     loginUser({
+    //       email: email,
+    //       password: password,
+    //     })
+    //   );
+    setLoading(true);
+    try {
+      // 1. Login with Firebase Auth
+      const userCredential = await authInstance.signInWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
+
+      // 2. Get user data from Firestore
+      const userDoc = await dbInstance.collection('users').doc(uid).get();
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        // 3. Update Redux with user data from Firestore
+        dispatch(setUser({
+          uid: uid,
+          name: userData?.name || '',
+          email: userData?.email || email, // Use Firestore email (updated email)
+          contactNo: userData?.contactNo || '',
+          address: userData?.address || '',
+          profileImage: userData?.profileImage || '',
+        }));
+      } else {
+        // If no Firestore doc exists, create one
+        const basicData = {
+          name: '',
+          email: email,
+          contactNo: '',
+          address: '',
+          profileImage: '',
+        };
+        await dbInstance.collection('users').doc(uid).set(basicData);
+        dispatch(setUser({
+          uid: uid,
+          ...basicData,
+        }));
+      }
+
       navigation.navigate('HomeTabs');
     } catch (error: any) {
       Alert.alert('Login Failed', error.message || 'An error occurred during login');
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -279,6 +331,7 @@ export default function Login() {
 
           <TouchableOpacity 
             style={[styles.loginButton, loading && styles.loginButtonDisabled]} 
+            // onPress={handleLogin}
             onPress={handleLogin}
             disabled={loading}
           >
@@ -399,13 +452,14 @@ const styles = StyleSheet.create({
   iconContainer: {
     position: 'absolute',
     right: wp('4%'),
-    top: wp('4%'),
+    top: height < 800 ? wp('7%') : hp('5%'),
+    // backgroundColor : '#000'
   },
   icon: {
     width: wp('7.5%'),
     height: wp('7.5%'),
     tintColor: 'gray',
-    top: height < 800 ? hp('4.5%') : hp('3.5%'),
+    // top: height < 800 ? hp('0%') : hp('0%'),
     alignSelf : 'center',
     // backgroundColor : 'red'
 

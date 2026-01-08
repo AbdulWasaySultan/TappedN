@@ -5,25 +5,34 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import React, { useState } from 'react';
 import { FontType } from '../../Components/Constants/FontType';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../Navigation/navigation';
 
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useDispatch } from 'react-redux';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { handleGlobalLogout } from '../../Context/authHelper';
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 
 export default function Settings() {
+  // const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  // const {logout} = useAuth();
+  const dispatch = useDispatch();
+  // const {user} = useAuth();
+
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   const handleProfileSettings = () => {
     navigation.navigate('ProfileSettings');
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     navigation.navigate('ChangePassword');
   };
 
@@ -33,12 +42,19 @@ export default function Settings() {
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel' },
-      { text: 'Logout', onPress: () => navigation.navigate('Login') },
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        onPress: async () => {
+          console.log('1. Logout option clicked');
+          const success = await handleGlobalLogout(dispatch);
+          if (success) {
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          }
+        },
+      },
     ]);
   };
-
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.container}>
@@ -218,7 +234,7 @@ const styles = StyleSheet.create({
     // backgroundColor: 'orange',
     justifyContent: 'center',
     width: '85%',
-    marginTop: isSmallScreen? '20%' :'4%',
+    marginTop: isSmallScreen ? '20%' : '4%',
   },
   title: {
     fontSize: FontType.titleBold2,
@@ -231,7 +247,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '85%',
-    marginTop: isSmallScreen? '8%' : '10%',
+    marginTop: isSmallScreen ? '8%' : '10%',
   },
   options: {
     backgroundColor: 'white',
@@ -239,7 +255,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    height: isSmallScreen? '13.5%' : '12.4%',
+    height: isSmallScreen ? '13.5%' : '12.4%',
     // height : 60,
     borderRadius: 10,
     padding: 10,

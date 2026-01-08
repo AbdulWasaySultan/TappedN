@@ -34,7 +34,7 @@ const Tab = createMaterialTopTabNavigator<MyTabsParamList>();
 
 const ServiceCompany = ({ outlet }: { outlet: OutletData}) => {
   return (
-    <View style={{ backgroundColor: '#FFFFFF' }}>
+    <View style={{ backgroundColor: '#fff', width : '100%' }}>
       <BackButton />
       <Image
         source= { require('../assets/images/OutletHairTreatment/hairCuts.png') ||{uri: outlet.outletBgImage}}
@@ -87,6 +87,12 @@ export default function MyTabs() {
     return (
       <View style={styles.container}>
         <Text>No data available. Please select an outlet.</Text>
+        <TouchableOpacity
+        style={styles.back}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.filters}>Filters</Text>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -150,9 +156,8 @@ export default function MyTabs() {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'flex-start',
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'red'
   },
   image: {
     width: '100%',
@@ -163,7 +168,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 26,
     marginTop: -35,
   },
@@ -203,4 +208,18 @@ const styles = StyleSheet.create({
     fontSize: FontType.medium,
     color: '#42526E80',
   },
+  back:{
+    width : '80%',
+    height : '10%',
+    borderRadius: 10,
+    alignSelf : 'center',
+    backgroundColor : 'red',
+    justifyContent : 'center',
+    alignItems : 'center'
+  },
+  filters:{
+    color : '#fff',
+    fontSize : FontType.large,
+    alignSelf : 'center',
+  }
 });

@@ -11,8 +11,14 @@ import {
 import { TextInput } from 'react-native';
 import { useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../Navigation/navigation';
 import BackButton from '../Components/BackButton/BackButton';
+import { authInstance  } from './Firebase/firebaseConfig';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../Navigation/navigation';
+
+
+// import { useSelector } from 'react-redux';
+// import { selectUserEmail } from '../redux/counterSlice';
 
 export default function ResetPassword() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -24,9 +30,13 @@ export default function ResetPassword() {
   const [retypeIsFocused, setRetypeIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [retypeShowPassword, setRetypeShowPassword] = useState(false);
+  // const email = useSelector(selectUserEmail)
+  // const [emailInput, setEmailInput] = useState(email)
+  const route = useRoute<RouteProp<RootStackParamList, 'ResetPassword'>>()
+  const {email} = route.params
   
 
- const handleResetPassword = () => {
+ const handleResetPassword = async () => {
 
   if(newPassword !== retypePassword){
     Alert.alert('Password Mismatch', 'The passwords do not match.', [
@@ -35,29 +45,23 @@ export default function ResetPassword() {
     return;
   }
     
-  if (!newPassword && !retypePassword) {
+  if (!newPassword || !retypePassword) {
     Alert.alert('Missing Fields', 'Please fill both the fields.', [
       { text: 'OK' },
     ]);
     return;
   } 
   
-  else if (!retypePassword) {
-      Alert.alert('Missing Fields', 'Please retype the new password.', [
-        { text: 'OK' },
-      ]);
-      return;
-
-    } else if (!newPassword) {
-      Alert.alert('Missing Fields', 'Please enter a new password.', [
-        { text: 'OK' },
-      ]);
-      return;
-    }
-    navigation.navigate('OTP');
-  };
-
-
+    try{
+    await authInstance.sendPasswordResetEmail(email)
+    Alert.alert('Check your email', 'We’ve sent a password reset link to your email.');
+    navigation.navigate('Login');
+  }
+  catch(error){
+    Alert.alert('Error', 'An error occurred while sending the reset link.');
+console.error(error)
+  }
+}
 
   return (
     <ImageBackground

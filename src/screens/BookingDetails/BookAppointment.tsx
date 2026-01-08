@@ -10,6 +10,7 @@ import {
   Platform,
   Modal,
   Dimensions,
+  Alert,
 } from 'react-native';
 import BackButton from '../../Components/BackButton/BackButton';
 import { FontType } from '../../Components/Constants/FontType';
@@ -20,16 +21,27 @@ import {
 import { RFValue } from 'react-native-responsive-fontsize';
 import CustomTextField from '../../Components/TextField';
 import { useState } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import { RootStackParamList } from '../../Navigation/navigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import OrangeButton from '../../Components/OrangeButton';
-const {width, height} = Dimensions.get('window');
+import { useDynamicBooking } from '../../Context/bookingData';
+import { useBookingContext } from '../../Context/bookingContext';
+import { useOutletContext } from '../../Context/OutletContext';
+
+const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 
-
 export default function BookAppointment() {
+  const route = useRoute<RouteProp<RootStackParamList, 'BookAppointment'>>();
+  const { outletId, serviceId } = route.params;
+
   const [name, setName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [link, setLink] = useState('');
@@ -38,7 +50,7 @@ export default function BookAppointment() {
   const [selectedBooking, setSelectedBooking] = useState('In Outlet');
 
   const [showDateModal, setShowDateModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
@@ -49,6 +61,12 @@ export default function BookAppointment() {
   const [inputHeight, setInputHeight] = useState(100);
   const [notes, setNotes] = useState('');
   const isSmallScreen = width < 800;
+
+  const { createBooking } = useDynamicBooking();
+  const { getOutletById } = useOutletContext();
+  const outletData = getOutletById(outletId);
+  const selectedOutlet = outletData;
+  const selectedService = outletData?.services?.find(s => s.id === serviceId);
 
   const handleSelectOption = (options: any, showOptions: boolean) => {
     setSelectedBooking(options);
@@ -68,34 +86,99 @@ export default function BookAppointment() {
   const setMeetingLink = (link: string) => {
     setLink(link);
   };
+  const bookingSchedule = () => {
+    const now = new Date();
+
+    const today = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    ).getTime();
+
+    const bookingDate = new Date(
+      selectedDate?.getFullYear(),
+      selectedDate?.getMonth(),
+      selectedDate?.getDate()).getTime();
+
+    if (bookingDate === today) {
+      return 'Today';
+    }
+    else if (bookingDate > today) {
+      return 'Upcoming';
+    }
+    else {
+      return 'Previous';
+    }
+  }
+
+  const handleBookAppointment = async () => {
+    if (
+      !name ||
+      !selectedBooking ||
+      !contactNumber ||
+      !selectedDate ||
+      !selectedTime
+    ) {
+      Alert.alert('Missing Fields', 'Please fill all the fields.', [
+        { text: 'OK' },
+      ]);
+      return;
+    }
+
+    
+    try {
+      await createBooking({
+        outletId: selectedOutlet?.id || '',
+        serviceName: selectedService?.serviceName || '',
+        outletName: selectedOutlet?.outletName || 'N/A',
+        date: selectedDate.toLocaleDateString('en-CA'), 
+      // Format: "12:30 PM"
+        time: selectedTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        price: selectedService?.price || 0,
+        status: 'Pending',
+        contactNumber,
+        schedule: bookingSchedule(),
+        bookingType: selectedBooking,
+        image: selectedService?.serviceImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c',
+        name: name, // ✅ Add user name
+      notes: notes, // ✅ Add notes
+      });
+      navigation.navigate('AppointmentConfirmed');
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      Alert.alert(
+        'Booking Failed',
+        'There was an error booking your appointment. Please try again later.',
+        [{ text: 'OK' }],
+      );
+    }
+  };
 
   const handleAddress = () => {
-
     return (
-    <View style={styles.inputContainer}>
-    <Text style={styles.label}>Address</Text>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Address</Text>
 
-    <TouchableOpacity
-      style={styles.addressContainer}
-      onPress={() => navigation.navigate('AppointmentConfirmed')}
-      activeOpacity={0.6}
-    >
-      <Text style={styles.addressText}>{'Corey Towers, NYC'}</Text>
-      <Image
-        source={require('../../assets/images/Booking/GPS.jpg')}
-        style={styles.arrowIcon}
-        resizeMode="contain"
-      />
-    </TouchableOpacity>
-
-  </View>
-    )
+        <TouchableOpacity
+          style={styles.addressContainer}
+          onPress={() => navigation.navigate('AppointmentConfirmed')}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.addressText}>{'Corey Towers, NYC'}</Text>
+          <Image
+            source={require('../../assets/images/Booking/GPS.jpg')}
+            style={styles.arrowIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <BackButton/>
+        <BackButton />
 
         <View style={styles.contentContainer}>
           <View style={styles.titleContainer}>
@@ -111,22 +194,28 @@ export default function BookAppointment() {
               />
               <View style={styles.serviceRowContainer}>
                 <View style={styles.serviceNameAndRatingContainer}>
-                  <Text style={styles.serviceName}>Hair Cuts</Text>
+                  <Text style={styles.serviceName}>
+                    {selectedService?.serviceName || ''}
+                  </Text>
                   <View style={styles.serviceRatingContainer}>
                     <Image
                       style={styles.starImage}
                       source={require('../../assets/images/Others/star.png')}
                       resizeMode="cover"
                     />
-                    <Text>
-                      <Text>4.5</Text>/5.0
+                    <Text style={styles.rating}>
+                      <Text style={styles.rating2}>
+                        {selectedService?.serviceRating?.ratingStars || 0}
+                      </Text>
+                      /5.0
                     </Text>
                   </View>
                 </View>
               </View>
               <View style={styles.servicePriceContainer}>
                 <Text style={styles.servicePrice}>
-                  $10<Text style={styles.greyText}>/hr</Text>
+                  ${selectedService?.price || 0}
+                  <Text style={styles.greyText}>/hr</Text>
                 </Text>
               </View>
             </View>
@@ -168,17 +257,23 @@ export default function BookAppointment() {
                 resizeMode="contain"
               />
             </TouchableOpacity>
+                {/* The variable options holds the current element of the loop. //
+                So in the first loop, options = "In Outlet", then "Mobile", then
+                "Virtual". 
+                //The variable index holds the current index of the
+                loop. */}
             {showOptions && (
               <View style={styles.modalView}>
-                //The variable options holds the current element of the loop. //
-                So in the first loop, options = "In Outlet", then "Mobile", then
-                "Virtual". //The variable index holds the current index of the
-                loop.
                 {bookingOptions.map((options, index) => (
                   <TouchableOpacity
                     key={index}
                     onPress={() => handleSelectOption(options, showOptions)}
-                    style={[styles.optionButton, index === bookingOptions.length - 1 && {borderBottomWidth : 0}]}
+                    style={[
+                      styles.optionButton,
+                      index === bookingOptions.length - 1 && {
+                        borderBottomWidth: 0,
+                      },
+                    ]}
                   >
                     <Text style={styles.optionText}>{options}</Text>
                   </TouchableOpacity>
@@ -187,26 +282,22 @@ export default function BookAppointment() {
             )}
           </View>
 
-
-          {(selectedBooking === 'In Outlet' || selectedBooking === 'Mobile') && (
-            handleAddress()
-          )}
+          {(selectedBooking === 'In Outlet' || selectedBooking === 'Mobile') &&
+            handleAddress()}
 
           {selectedBooking === 'Virtual' && (
+            <View style={styles.inputContainer}>
+              {/* <Text style={styles.label}>Enter Meeting Link</Text> */}
 
-          <View style={styles.inputContainer}>
-            {/* <Text style={styles.label}>Enter Meeting Link</Text> */}
-
-            <CustomTextField
-              label="Enter Meeting Link"
-              placeholder="https://meet.google.com/abc123"
-              style={styles.input}
-              value={link}
-              onChangeText={setMeetingLink}
-              keyboardType="url"
-            />
-          </View>
-
+              <CustomTextField
+                label="Enter Meeting Link"
+                placeholder="https://meet.google.com/abc123"
+                style={styles.input}
+                value={link}
+                onChangeText={setMeetingLink}
+                keyboardType="url"
+              />
+            </View>
           )}
 
           <View style={styles.bookingContainer}>
@@ -273,61 +364,69 @@ export default function BookAppointment() {
                 onCancel={() => setShowTimeModal(false)}
               />
             )}
-  </View>
+          </View>
 
-        <View style={styles.notesContainer}>
-          <Text style={styles.label}>Add Notes</Text>
-          <TextInput
-            style={styles.notesInput}
-            multiline
-            value={notes}
-            onChangeText={setNotes}
-            onContentSizeChange={event =>
-                setInputHeight(Math.max(100, Math.min(150, event.nativeEvent.contentSize.height)))
-            }
-            placeholder="Type Something..."
-            placeholderTextColor="#42526E50"
-            textAlignVertical="top"
-          />
-          <OrangeButton title='Book Appointment' onPress={()=>{navigation.navigate('AppointmentConfirmed')}} style={styles.button}/>
+          <View style={styles.notesContainer}>
+            <Text style={styles.label}>Add Notes</Text>
+            <TextInput
+              style={styles.notesInput}
+              multiline
+              value={notes}
+              onChangeText={setNotes}
+              onContentSizeChange={event =>
+                setInputHeight(
+                  Math.max(
+                    100,
+                    Math.min(150, event.nativeEvent.contentSize.height),
+                  ),
+                )
+              }
+              placeholder="Type Something..."
+              placeholderTextColor="#42526E50"
+              textAlignVertical="top"
+            />
+            <OrangeButton
+              title="Book Appointment"
+              onPress={handleBookAppointment}
+              style={styles.button}
+            />
+          </View>
         </View>
-      </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-    scrollContainer:{
-        backgroundColor: '#FFFFFF30',
-        paddingBottom: 30,  // avoid cut-off at bottom
-    },
+  scrollContainer: {
+    backgroundColor: '#FFFFFF30',
+    paddingBottom: 30, // avoid cut-off at bottom
+  },
   container: {
     flexGrow: 1,
     // backgroundColor: 'green',
     width: '100%',
-    alignItems : 'center'
-
+    alignItems: 'center',
   },
   contentContainer: {
     // backgroundColor: 'black',
     width: wp('100%'),
-    marginTop: isSmallScreen? hp('22%') : hp('17%'),
+    marginTop: isSmallScreen ? hp('11%') : hp('16%'),
     gap: hp('4%'), // spacing between title and service card
   },
   titleContainer: {
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    minWidth: '90%',
-    marginHorizontal: 20,
-    marginLeft: 30,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    minWidth: '60%',
+    marginHorizontal: 33,
+    // marginLeft: 30,
     // backgroundColor: 'yellow',
   },
   title: {
-    fontSize: isSmallScreen? FontType.xxtraLarge : FontType.title,
+    fontSize: isSmallScreen ? FontType.xxtraLarge : FontType.title,
     fontWeight: '900',
     color: '#263238',
-    marginLeft: -10,
+    // marginLeft: -10,
   },
   serviceContainer: {
     backgroundColor: '#FFFFFF',
@@ -370,7 +469,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   serviceName: {
-    fontSize: RFValue(18),
+    fontSize: RFValue(17),
     fontWeight: '600',
     color: '#000',
   },
@@ -475,8 +574,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     alignSelf: 'center',
-    borderBottomColor : '#42526E20',
-    // backgroundColor : 'pink',
+    borderBottomColor: '#42526E20',
+    // backgroundColor : '#cdcdcd',
     // borderBottomWidth : 1,
   },
   optionText: {
@@ -486,7 +585,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   modalView: {
-    backgroundColor: 'white',
+    backgroundColor: '#dadada',
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'center',
@@ -525,7 +624,7 @@ const styles = StyleSheet.create({
   bookingContainer: {
     width: '90%',
     alignSelf: 'center',
-marginTop : 24,
+    marginTop: 24,
     alignItems: 'center',
     justifyContent: 'space-between',
     // backgroundColor: 'orange',
@@ -578,22 +677,32 @@ marginTop : 24,
     alignSelf: 'center',
     marginTop: 20,
   },
-  notesInput :{
+  notesInput: {
     borderWidth: 2,
     borderColor: '#0D805620',
     borderRadius: 10,
     fontSize: wp('4%'),
     marginHorizontal: 10,
-    paddingHorizontal:15,
+    paddingHorizontal: 15,
     paddingVertical: 10,
     width: '94%',
     color: '#000',
     minHeight: 100,
-    maxHeight: 150, 
+    maxHeight: 150,
   },
   button: {
     marginTop: 20,
     marginHorizontal: 10,
     marginBottom: 10,
+  },
+  rating: {
+    color: '#42526E60',
+    fontWeight: '600',
+    fontSize: FontType.regular,
+  },
+
+  rating2: {
+    color: '#42526E',
+    fontWeight: '500',
   },
 });

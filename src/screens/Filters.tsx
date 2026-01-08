@@ -15,14 +15,30 @@ import { useState } from 'react';
 import { Image } from 'react-native';
 import { TextInput } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import {RootStackParamList } from '../Navigation/navigation';
+import { RootStackParamList } from '../Navigation/navigation';
 import { useRoute, RouteProp } from '@react-navigation/native';
 
 const outletsData = [
-      { id: 1, name: 'Tony&Guy', icon: require('../assets/images/OutletHairTreatment/outlet.png') },
-    { id: 2, name: 'Tony&Guy', icon: require('../assets/images/OutletHairTreatment/outlet2.png') },
-    { id: 3, name: 'Tony&Guy', icon: require('../assets/images/OutletHairTreatment/outlet3.png') },
-    { id: 4, name: 'Tony&Guy', icon: require('../assets/images/OutletHairTreatment/outlet3.png') },
+  {
+    id: 1,
+    name: 'Tony&Guy',
+    icon: require('../assets/images/OutletHairTreatment/outlet.png'),
+  },
+  {
+    id: 2,
+    name: 'Tony&Guy',
+    icon: require('../assets/images/OutletHairTreatment/outlet2.png'),
+  },
+  {
+    id: 3,
+    name: 'Tony&Guy',
+    icon: require('../assets/images/OutletHairTreatment/outlet3.png'),
+  },
+  {
+    id: 4,
+    name: 'Tony&Guy',
+    icon: require('../assets/images/OutletHairTreatment/outlet3.png'),
+  },
   // { id: 5, name: 'Tony&Guy', icon: require('../assets/images/outlet5.png') },
 ];
 
@@ -32,7 +48,11 @@ const subCategoryData = [
     name: 'Carpenter',
     icon: require('../assets/images/Handyman/Carpenter.png'),
   },
-  { id: 7, name: 'Plumber', icon: require('../assets/images/Handyman/Plumber.png') },
+  {
+    id: 7,
+    name: 'Plumber',
+    icon: require('../assets/images/Handyman/Plumber.png'),
+  },
   {
     id: 8,
     name: 'Electrician',
@@ -43,7 +63,11 @@ const subCategoryData = [
     name: 'Ac-Repair',
     icon: require('../assets/images/Handyman/AC-Repair.png'),
   },
-  { id: 10, name: 'Painter', icon: require('../assets/images/Handyman/Painter.png') },
+  {
+    id: 10,
+    name: 'Painter',
+    icon: require('../assets/images/Handyman/Painter.png'),
+  },
 ];
 
 export default function Filters() {
@@ -51,17 +75,19 @@ export default function Filters() {
   const [location, setLocation] = useState<string>('Enter Location ...');
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Filters'>>();
-  const [selectedBooking, setSelectedBooking] = useState<string | null>('In Outlet');
+  const [selectedBooking, setSelectedBooking] = useState<string | null>(
+    'In Outlet',
+  );
   const [showOptions, setShowOptions] = useState(false);
   const bookingOptions = ['Online', 'In Outlet', 'In-Home'];
 
   const handleSelectOption = (options: any, showOptions: boolean) => {
-  setSelectedBooking(options)
+    setSelectedBooking(options);
     setShowOptions(false);
   };
 
   const navigate = () => {
-    (navigation as any).navigate('MyTabs', { 
+    (navigation as any).navigate('MyTabs', {
       screen: 'Services',
       params: {
         outletData: {
@@ -75,10 +101,10 @@ export default function Filters() {
               serviceName: 'Filtered Services',
               price: 0,
               serviceImage: require('../assets/images/OutletHairTreatment/hairCuts.png'),
-            }
-          ]
-        }
-      }
+            },
+          ],
+        },
+      },
     });
   };
 
@@ -142,9 +168,21 @@ export default function Filters() {
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
       <Container style={styles.container}>
-        <BackButton />
+        <View style={styles.header}>
+        <TouchableOpacity
+      onPress={() => navigation.goBack()}
+      style={[styles.button]}
+      activeOpacity={0.7}
+    >
+      <Image
+        source={require('../assets/images/Others/backButton.png')} // <-- use your own icon here
+        style={styles.backButtonIcon}
+        resizeMode='contain'
+      />
+    </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Filters</Text>
+        </View>
         </View>
         <MainContainer style={styles.mainContainer}>
           <View
@@ -197,12 +235,18 @@ export default function Filters() {
                 resizeMode="contain"
               />
             </TouchableOpacity>
+
             {showOptions && (
               <View style={styles.modalView}>
                 {bookingOptions.map((options, index) => (
                   <TouchableOpacity
                     key={index}
-                    style={[styles.optionButton, index === bookingOptions.length - 1 && {borderBottomWidth : 0}]}
+                    style={[
+                      styles.optionButton,
+                      index === bookingOptions.length - 1 && {
+                        borderBottomWidth: 0,
+                      },
+                    ]}
                     onPress={() => handleSelectOption(options, showOptions)}
                   >
                     <Text style={styles.optionText}>{options}</Text>
@@ -257,42 +301,58 @@ export default function Filters() {
   );
 }
 const styles = StyleSheet.create({
-  scrollView : {
-    backgroundColor : '#FFFFFF',
-    flex : 1,
+  scrollView: {
+    backgroundColor: '#FFFFFF',
+    flex: 1,
   },
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: '#cdcdcd',
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  header:{
+    flexDirection : 'row',
+    width : '100%',
+    paddingHorizontal : 20,
+    paddingTop : 50,
+    backgroundColor : 'yellow',
+    justifyContent : 'space-between',
+    alignItems : 'center',
+
+  },
+  backButton:{
+
   },
   titleContainer: {
-    left: 84,
-    top : -7,
-    position: 'absolute',
-    justifyContent: 'center',
-    // backgroundColor : 'pink',
+    flex : 1,
+    alignItems : 'center',
+marginRight : 0,
+backgroundColor : 'cyan'
   },
   title: {
     color: '#F27122',
     fontSize: FontType.title,
     fontFamily: 'Montserrat-Bold',
-    fontWeight : '600',
-    marginTop: 78 ,
+    fontWeight: '600',
   },
   mainContainer: {
-    // backgroundColor: 'red',
-    marginHorizontal: 20,
-    marginTop: 150,
-    marginBottom: 50,
-    justifyContent: 'flex-start',
-    flexDirection: 'column',
+    backgroundColor: 'red',
+    // marginHorizontal: 20,
+    // marginTop: 150,
+    // marginBottom: 50,
+    // justifyContent: 'flex-start',
+    // flexDirection: 'column',
     // alignItems: 'center',
+    width: '100%',              // Allow it to fill the screen
+  paddingHorizontal: 20,      // Use padding instead of margin for better touch handling
+  marginTop: 20,              // Small gap after the header
+  flexDirection: 'column',
   },
   portionContainer: {
     width: '100%', // stretch horizontally
     paddingVertical: 15,
-    // backgroundColor: 'blue',
+    // backgroundColor: 'pink',
     // borderRadius : 10,
   },
 
@@ -356,9 +416,11 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     paddingVertical: 15,
     width: '95%',
-    marginHorizontal : 10,
+    marginHorizontal: 10,
     borderRadius: 8,
-    borderColor: '#F27122',
+    borderColor: '#a0a0a0',
+    // backgroundColor : '#cdcdcd',
+
     borderWidth: 1.2,
     marginVertical: 30,
     marginLeft: 10,
@@ -366,7 +428,7 @@ const styles = StyleSheet.create({
   bookingTypeText: {
     fontSize: FontType.medium,
     color: '#42526E',
-    paddingLeft : 10
+    paddingLeft: 10,
   },
   arrowIcon: {
     width: 20,
@@ -444,47 +506,49 @@ const styles = StyleSheet.create({
     width: '100%',
     textAlign: 'center',
   },
-  modalContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    // backgroundColor : 'red',
-    marginHorizontal: 10,
-    paddingVertical: 0,
-    marginTop: -30,
-    alignSelf: 'center',
-  },
   modalView: {
-    backgroundColor: 'pink',
+    backgroundColor: '#e1e1e1',
     alignItems: 'center',
     alignSelf: 'center',
-    justifyContent : 'center',
-    width : '80%',
+    justifyContent: 'center',
     // paddingHorizontal : 140,
-    paddingVertical : 10,
+    paddingVertical: 10,
     // marginLeft : 10,
-    borderBottomColor : '#42526E20',
-    marginTop : -30,
-    // borderRadius: -20,
-    // borderTopLeftRadius: 0,
-    // borderTopRightRadius: 0,
-    // borderBottomRightRadius: 20,
-    // borderBottomLeftRadius: 20,
-    borderRadius : 18,
-    
+    marginTop: -30,
+    width: '100%',
+
+    borderRadius: -20,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
   },
   optionButton: {
-    paddingVertical: 10,
+    paddingVertical: 13,
     alignItems: 'center',
-    width : 370,
-    alignSelf : 'center',
-    height : 40,
-    borderBottomWidth : 1,
-    borderColor : '#42526E20',
-    },
+    width: '100%',
+    alignSelf: 'center',
+    borderBottomColor: '#42526E20',
+
+    borderBottomWidth: 1,
+    borderColor: '#42526E20',
+    // backgroundColor: '#ffff'
+  },
   optionText: {
     fontSize: FontType.medium,
     color: '#42526E',
     fontFamily: 'Montserrat-Regular',
     fontWeight: '500',
   },
+  button:{
+    padding: 10,
+    backgroundColor: 'transparent',
+    // backgroundColor : 'red',
+  },
+  backButtonIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#F27122',  // Optional: color the icon
+  },
+
 });

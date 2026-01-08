@@ -11,7 +11,6 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList, OutletData } from '../Navigation/navigation'; // **CHANGE 1: Import OutletData type**
 import { FontType } from '../Components/Constants/FontType';
 import { Image } from 'react-native';
-import { useUser } from '../Context/userContext';
 import RowContainer from '../Components/RowContainer';
 import { TextInput } from 'react-native';
 import { useState, useEffect } from 'react';
@@ -22,6 +21,8 @@ import { ImageSourcePropType } from 'react-native';
 import { fetchAllOutlets } from '../API/api';
 import { useOutletContext } from '../Context/OutletContext';
 import { Dimensions } from 'react-native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 // import { useLocation } from '';
 
@@ -30,14 +31,17 @@ const isSmallScreen = height < 800;
 
 export default function Home() {
   const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  const { userFullName, selectedProfileImage } = useUser();
+  // const { userFullName, selectedProfileImage } = useUser();
   const [searchServices, setSearchServices] = useState<string>('');
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [outlets, setOutlets] = useState<OutletData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-
+  const [imageError, setImageError] = useState<boolean>(false);
+  
+  const userName = useSelector((state : RootState) => state.user.name);
+  const profileImage = useSelector((state : RootState) => state.user.profileImage);
+  
   useEffect(() => {
 
   const fetchAndSetOutlets = async () => {
@@ -68,6 +72,9 @@ export default function Home() {
     navigation.navigate('Subscription');
   };
   const renderOutlets = ({ item }: { item: OutletData }) => {
+    const fallbackImage = require('../assets/images/OutletHairTreatment/hairTreatment.png');
+    const fallbackImage2 = require('../assets/images/OutletWindowCleaning/windowService.png');
+
     return (
       <TouchableOpacity
         // onPress={() => navigation.navigate({serviceName})}
@@ -80,10 +87,12 @@ export default function Home() {
         }
       >
         <Image source={ 
-          item.outletBgImage
+          item.outletBgImage && !imageError
           ? {uri : item.outletBgImage as string} 
-          : require('../assets/images/OutletHairTreatment/hairCuts.png')} 
-          style={styles.serviceImage} 
+          : item.id == '1' ? fallbackImage : fallbackImage2
+        }
+          style={styles.serviceImage}
+          onError={() => {setImageError(true)}}
           resizeMode="cover"
           />
 
@@ -92,7 +101,8 @@ export default function Home() {
             <View style={styles.serviceName}>
               <Text style={styles.serviceNameText}>
                 {item.services.length > 0 ? 
-                item.services[0].serviceName : 'no service'}
+                item.services[0].serviceName : 'no service'
+                }
               </Text>
               <Text style={styles.serviceShopName}>{item.outletName}</Text>
             </View>
@@ -241,14 +251,14 @@ if(loading){
                   <Text style={styles.greetingsText}>
                     Hey,{'\t'}
                     <Text style={styles.greetingsTextBold}>
-                      {userFullName || 'Guest'}
+                      {userName || 'Guest'}
                     </Text>
                   </Text>
                 </View>
                 <Image
                   source={
-                    selectedProfileImage
-                      ? { uri: selectedProfileImage }
+                    profileImage
+                      ? { uri: profileImage }
                       : require('../assets/images/Others/profile.png')
                   }
                   style={styles.userImage}
@@ -494,19 +504,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between', // evenly spread
-    width: '100%',
+    width: '98%',
     alignSelf: 'center',
     marginVertical: 5,
     // backgroundColor: 'red',
+
   },
   
   itemContainer: {
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     // backgroundColor: 'blue',
     // marginLeft: 6,
     // marginRight: 8,
-    marginHorizontal : isSmallScreen? 4 : 7,
+    marginHorizontal : isSmallScreen? 4 : 9,
     flex: 1,
       // 👈 fixed width so text & icon align
   },
@@ -595,6 +606,7 @@ marginHorizontal : 10,
     alignSelf: 'center',
     marginTop: 30,
     marginBottom: 50,
+
   },
   serviceImage: {
     width: '100%',

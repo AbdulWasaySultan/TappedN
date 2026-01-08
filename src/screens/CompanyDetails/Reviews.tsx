@@ -117,86 +117,106 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
 
   const renderReviews = ({ item }: { item: allReviews }) => {
     return (
-      <>
-        <View style={styles.rowContainer}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{ uri: item.profileImage }}
-              //   item.profileImage
-              // ? {uri : item.profileImage}
-              // :
-              // require('../../assets/images/Review/profileImage.png')
-              style={styles.profileImage}
-            />
+      <View style={[styles.reviewItemWrapper]}>
+        <View style={styles.profileImageContainer}>
+          <Image
+            source={{ uri: item.profileImage }}
+            resizeMode="cover"
+            //   item.profileImage
+            // ? {uri : item.profileImage}
+            // :
+            // require('../../assets/images/Review/profileImage.png')
+            style={styles.profileImage}
+          />
+        </View>
+
+        <View style={styles.reviewContent}>
+          <View style={[styles.reviewHeaderRow]}>
+            <Text style={styles.name}>{item.name}</Text>
+            <View style={styles.timeContainer}>
+              <Text style={styles.time}>{formattedTime(item.time)}</Text>
+            </View>
           </View>
 
-          <View style={styles.reviewContent}>
-            <View
-              style={[
-                styles.rowContainer,
-                { justifyContent: 'space-between', marginTop: 5 },
-              ]}
-            >
-              <Text style={styles.name}>{item.name}</Text>
-              <View style={styles.timeContainer}>
-                <Text style={styles.time}>{formattedTime(item.time)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.ratingStarsContainer}>
-              {ratingStars.map((star, index) => (
-                <Image key={index} source={star} style={styles.ratingStars} />
-              ))}
-            </View>
+          <View style={styles.ratingStarsContainer}>
+            {ratingStars.map((star, index) => (
+              <Image key={index} source={star} style={styles.ratingStars} />
+            ))}
+          </View>
+          <View style={styles.message}>
             <Text style={styles.reviewDescription}>{item.description}</Text>
           </View>
         </View>
-      </>
+      </View>
     );
   };
   //function ends here
 
   //render starts here
   return (
-    <ScrollView
-      // bounces={false}                // 🚫 disables iOS bounce
-      // overScrollMode="never"         // 🚫 disables Android overscroll glow
-      showsVerticalScrollIndicator={false} // optional: hides the scrollbar
-      contentContainerStyle={{ flexGrow: 1 }}
-      style={{ backgroundColor: '#FFFFFF' }}
-    >
-      <View style={styles.container}>
-        <View style={styles.mainContainer}>
-          <Text style={styles.title}>{averageRating.toFixed(1)}</Text>
+    // <ScrollView
+    // bounces={false}                // 🚫 disables iOS bounce
+    // overScrollMode="never"         // 🚫 disables Android overscroll glow
+    //   showsVerticalScrollIndicator={false} // optional: hides the scrollbar
+    //   contentContainerStyle={{ flexGrow: 1 }}
+    //   style={{ backgroundColor: '#FFFFFF' }}
+    // >
+    // <View style={styles.container}>
+    //   <View style={styles.mainContainer}>
+    //     <Text style={styles.title}>{averageRating.toFixed(1)}</Text>
 
-          <FlatList
-            data={[outletData.outletRating]}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            scrollEnabled={false}
-          />
+    //     <FlatList
+    //       data={[outletData.outletRating]}
+    //       renderItem={renderItem}
+    //       keyExtractor={item => item.id}
+    //       scrollEnabled={false}
+    //     />
+    //   </View>
+
+    //
+    <FlatList
+      data={outletData?.reviews ?? []} // ensures array, never undefined
+      keyExtractor={item => item.id} //reviewid
+      renderItem={renderReviews}
+      style={{ backgroundColor: '#FFFF' }}
+      ListHeaderComponent={
+        <View style={styles.container}>
+          <View style={styles.mainContainer}>
+            <Text style={styles.title}>{averageRating.toFixed(1)}</Text>
+            {/* You can keep this small internal list or just map the ratings */}
+            <FlatList
+              data={[outletData.outletRating]}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+              scrollEnabled={false}
+            />
+          </View>
+          <View style={styles.recentReviewsTitleContainer}>
+            <Text style={styles.recentReviewsTitle}>RECENT REVIEWS</Text>
+          </View>
         </View>
-
-
-<View style={styles.recentReviewsTitleContainer}><Text style={styles.recentReviewsTitle}>RECENT REVIEWS</Text></View>
-        <View style={styles.reviewsContainer}>
-          <FlatList
-            data={outletData?.reviews ?? []} // ensures array, never undefined
-            keyExtractor={item => item.id} //reviewid
-            renderItem={renderReviews}
-            scrollEnabled={false}
-          />
-        </View>
+      }
+      // Use ListFooterComponent for the button at the BOTTOM
+      ListFooterComponent={
         <OrangeButton
           title="Write a Review"
           style={styles.postReviewButton}
-          onPress={() => {
-            navigation.navigate('MyReview');
-          }}
+          onPress={() => navigation.navigate('MyReview')}
         />
-      </View>
-    </ScrollView>
+      }
+      showsVerticalScrollIndicator={false}
+    />
   );
+  //     {/* </View>
+  //     <OrangeButton
+  //       title="Write a Review"
+  //       style={styles.postReviewButton}
+  //       onPress={() => {
+  //         navigation.navigate('MyReview');
+  //       }}
+  //     />
+  //   </View>
+  // </ScrollView> */}
 }
 
 const styles = StyleSheet.create({
@@ -268,11 +288,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  recentReviewsTitleContainer:{
-    width : '90%',
-    alignSelf : 'center',
+  recentReviewsTitleContainer: {
+    width: '91%',
+    alignSelf: 'center',
     // backgroundColor : 'red',
-    marginVertical : 10
+    marginVertical: 8,
+    marginTop : 30
   },
   recentReviewsTitle: {
     fontSize: FontType.xlarge,
@@ -280,41 +301,40 @@ const styles = StyleSheet.create({
     color: '#42526E',
     // backgroundColor : 'red'
   },
-  reviewsContainer: {
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    width: '90%',
+  reviewItemWrapper: {
+    // backgroundColor: 'blue',
+    width: '96%',
     alignSelf: 'center',
-    marginLeft: 15,
-    // backgroundColor: 'orange',
-  },
-  rowContainer: {
+    paddingVertical: 0,
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    // backgroundColor: 'pink',
+    marginTop : 10
+  },
+  reviewHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     width: '100%',
-    marginVertical: 5,
-    marginBottom: 15,
   },
   reviewContent: {
-    flexDirection: 'column',
     flex: 1,
     borderBottomWidth: 1,
     borderBottomColor: '#b3b3b3',
+    // backgroundColor: 'red',
   },
   profileImageContainer: {
-    // justifyContent: 'flex-start',
-    // alignItems: 'center',
-    width: 80,
-    marginRight: 15,
+    width: 100,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginRight: 5,
+    marginLeft : 3
     // backgroundColor: 'purple',
   },
   profileImage: {
-    width: '100%',
-    borderRadius: '35%',
-    marginTop: 5,
+    width: 85,
+    height: 85,
+    borderRadius: 42.5,
+    marginTop: 10,
   },
-
   name: {
     fontSize: FontType.large,
     fontWeight: '600',
@@ -338,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '60%',
     // backgroundColor : 'orange',
-    marginTop: -8,
+    marginLeft: 5,
   },
   ratingStars: {
     width: 16,
@@ -347,12 +367,14 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   reviewDescription: {
-    fontSize: FontType.large,
+    fontSize: FontType.medium,
     marginTop: 2,
     marginBottom: 15,
+    marginLeft: 5,
     paddingVertical: 5,
     color: '#42526E',
     overflow: 'hidden',
+
     // backgroundColor : 'blue'
   },
   postReviewButton: {
@@ -361,6 +383,9 @@ const styles = StyleSheet.create({
     width: '85%',
     alignItems: 'center',
     alignSelf: 'center',
+  },
+  message: {
+    width: '94%',
   },
 });
 

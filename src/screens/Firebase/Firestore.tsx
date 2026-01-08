@@ -1,16 +1,61 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+// In your registration/signup screen
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import messaging from '@react-native-firebase/messaging';
+import {PermissionsAndroid} from 'react-native';
 
+export const createUserProfile = async (userData: {
+  uid: string;
+  name: string;
+  email: string;
+  address: string;
+  contactNo: string;
+  profileImage?: string;
+  role: 'user' | 'serviceProvider';
+}) => {
+  try {
+    // If you have a profile image, upload it to Firebase Storage
+    let profileImageUrl = '';
+    if (userData.profileImage) {
+      const filename = `profiles/${userData.uid}.jpg`;
+      const reference = storage().ref(filename);
+      await reference.putFile(userData.profileImage);
+      profileImageUrl = await reference.getDownloadURL();
+    }
 
-const Firestore = () => {
-  return (
-    <View>
-      <Text>Firestore</Text>
-    </View>
-  )
+    // Create user document in Firestore
+    await firestore()
+      .collection('users')
+      .doc(userData.uid)
+      .set({
+        uid: userData.uid,
+        name: userData.name,
+        email: userData.email,
+        address: userData.address,
+        contactNo: userData.contactNo,
+        profileImage: profileImageUrl,
+        role: userData.role,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+
+    console.log('User profile created successfully!');
+  } catch (error) {
+    console.error('Error creating user profile:', error);
+  }
+
+async function requestUserPermission() {
+  const authStatus = await messaging().requestPermission();
+  const enabled =
+    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+  if (enabled) {
+    console.log('Authorization status:', authStatus);
+  }
 }
+  PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
 
+};
 
 // {
 //   "outlets": [

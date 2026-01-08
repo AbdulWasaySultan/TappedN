@@ -9,12 +9,12 @@ import Settings from './Settings';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Image } from 'react-native';
 import { FontType } from '../../Components/Constants/FontType';
-import { useAuth } from '../../Context/AuthContext';
+// import { useAuth } from '../../Context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 
 export default function HomeTabs() {
-  const {loading} = useAuth();
+  // const {loading} = useAuth();
 
   return (
    

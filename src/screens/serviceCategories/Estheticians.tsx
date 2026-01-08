@@ -8,15 +8,17 @@ import {
   Dimensions,
   TouchableOpacity,
   Animated,
+  TextInput
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList, ServiceReviews } from '../../Navigation/navigation';
+import { useNavigation,useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../Navigation/navigation';
 import { NavigationProp } from '@react-navigation/native';
 import BackButton from '../../Components/BackButton/BackButton';
 import { useState } from 'react';
 import { FontType } from '../../Components/Constants/FontType';
 import { RFValue } from 'react-native-responsive-fontsize'; // Import for responsive font size
 import { SwipeListView } from 'react-native-swipe-list-view';
+import Container from '../../Components/Container'; 
 
 const { width, height } = Dimensions.get('window');
 
@@ -308,13 +310,305 @@ const { width, height } = Dimensions.get('window');
 // });
 
 export default function Estheticians() {
+  const route = useRoute<RouteProp<RootStackParamList, 'Estheticians'>>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
+  // Updated services for Estheticians
+  const allServices = [
+    { id: 1, name: 'Basic Facial', image: require('../../assets/images/Estheticians/facial.png') },
+    { id: 2, name: 'Chemical Peel', image: require('../../assets/images/Estheticians/peel.png') },
+    { id: 3, name: 'Microderm', image: require('../../assets/images/Estheticians/microderm.png') },
+    { id: 4, name: 'Waxing', image: require('../../assets/images/Estheticians/waxing.png') },
+    { id: 5, name: 'Lash Lift', image: require('../../assets/images/Estheticians/lashes.png') },
+    { id: 6, name: 'Brow Tint', image: require('../../assets/images/Estheticians/brows.png') },
+    { id: 7, name: 'Extractions', image: require('../../assets/images/Estheticians/extractions.png') },
+    { id: 8, name: 'Dermaplane', image: require('../../assets/images/Estheticians/dermaplaning.png') },
+    { id: 9, name: 'Skin Consult', image: require('../../assets/images/Estheticians/skinConsultant.png') },
+  ];
+
+  const [searchServices, setSearchServices] = useState<string>('');
+  const [filteredService, setFilteredService] = useState(allServices);
+
+  const handleSearch = (text: string) => {
+    setSearchServices(text);
+    if (text.trim() === '') {
+      setFilteredService(allServices);
+    } else {
+      const filtered = allServices.filter(service =>
+        service.name.toLowerCase().includes(text.toLowerCase()),
+      );
+      setFilteredService(filtered);
+    }
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    return (
+      <View style={styles.serviceContainer}>
+        <TouchableOpacity
+          style={styles.itemWrapper}
+          onPress={() => {/* Navigate to Service Details */}}
+        >
+          <Image 
+            source={item.image} 
+            style={styles.serviceImage} 
+            resizeMode='cover'
+          />
+        </TouchableOpacity>
+        <Text numberOfLines={2} style={styles.serviceName}>
+          {item.name}
+        </Text>
+      </View>
+    );
+  };
+
   return (
-    <View style={{flex : 1, justifyContent : 'center', alignItems : 'center'}}>
+    <Container style={{ backgroundColor: '#f9f9f9' }}>
       <BackButton />
-      <Text>Estheticians</Text>
-    </View>
-  )
+      
+      <View style={styles.topContainer}>
+        <Text style={styles.topContainerText}>Estheticians</Text>
+      </View>
+
+      <View style={styles.searchView}>
+        <TextInput
+          placeholder="Search Services"
+          placeholderTextColor="#42526E"
+          style={styles.input}
+          value={searchServices}
+          onChangeText={handleSearch}
+          returnKeyType="search"
+          autoCapitalize="none"
+        />
+        <TouchableOpacity
+          onPress={() => handleSearch(searchServices)}
+          style={styles.searchIconContainer}
+        >
+          <Image
+            source={require('../../assets/images/Home/search.png')}
+            style={styles.searchIcon}
+          />
+        </TouchableOpacity>
+      </View>
+
+       <View style={styles.mainContainer}>
+             <FlatList
+               keyExtractor={item => item.id.toString()}
+               data={filteredService}
+               renderItem={renderItem}
+               numColumns={3}
+               // scrollEnabled={false}
+               columnWrapperStyle={{
+                 justifyContent: 'space-between',
+                 marginBottom: 100,
+               }}
+               showsVerticalScrollIndicator={false}
+             />
+      </View>
+    </Container>
+  );
 }
 
+// const styles = StyleSheet.create({
+//   topContainer: {
+//     width: '90%',
+//     marginTop: 150,
+//     marginBottom: 10,
+//   },
+//   topContainerText: {
+//     fontSize: FontType.titleBold,
+//     fontWeight: '900',
+//     color: '#263238',
+//     marginLeft: 12,
+//   },
+//   input: {
+//     borderRadius: 13,
+//     paddingLeft: 26,
+//     color: '#000',
+//     fontSize: 16,
+//     height: 55,
+//     backgroundColor: '#FFFFFF',
+//     width: '100%',
+//     elevation: 5,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.1,
+//     shadowRadius: 4,
+//   },
+//   searchView: {
+//     width: '90%',
+//     alignSelf: 'center',
+//     marginTop: 10,
+//     zIndex: 1,
+//   },
+//   searchIconContainer: {
+//     position: 'absolute',
+//     right: 15,
+//     top: 15,
+//   },
+//   searchIcon: {
+//     width: 25,
+//     height: 25,
+//   },
+//   mainContainer: {
+//     flex: 1,
+//     width: '94%',
+//     alignSelf: 'center',
+//     marginTop: 30,
+//   },
+//   row: {
+//     justifyContent: 'space-between',
+//     marginBottom: 25,
+//   },
+//   itemWrapper: {
+//     width: '30%',
+//     alignItems: 'center',
+//   },
+//   serviceContainer: {
+//     width: 80,
+//     height: 80,
+//     borderRadius: 40,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: '#FFFFFF',
+//     borderColor: '#F2712250',
+//     borderWidth: 1,
+//     elevation: 3,
+//   },
+//   serviceImage: {
+//     width: '55%',
+//     height: '55%',
+//   },
+//   serviceName: {
+//     fontSize: 12,
+//     fontWeight: '500',
+//     color: '#263238',
+//     marginTop: 10,
+//     textAlign: 'center',
+//     width: '100%',
+//   },
+// });
+const styles = StyleSheet.create({
+  // safeArea:{
+  //   flex: 1,
+  //   backgroundColor: '#FFFFFF',
+  // },
+
+  topContainer: {
+    width: '90%',
+    height: 60,
+    marginTop: 150,
+    // marginTop : Dimensions.get('window').height * 0.1,
+    // backgroundColor : 'red'
+  },
+  topContainerText: {
+    fontSize: FontType.titleBold,
+    fontWeight: '900',
+    color: '#263238',
+    marginLeft: 12,
+  },
+  backButtonContainer: {
+    width: '10%',
+    height: 40,
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  backButtonText: {
+    fontSize: FontType.title,
+    fontWeight: 'bold',
+    color: '#263238',
+  },
+  input: {
+    borderColor: '#fff',
+    borderWidth: 1,
+    borderRadius: 13,
+    padding: 10,
+    paddingVertical: 14,
+    paddingLeft: 26,
+    margin: 10,
+    color: '#000',
+    fontSize: 16,
+    height: 55,
+    alignSelf: 'center',
+    backgroundColor: '#FFFFFF',
+    width: '94%',
+    elevation: 10,
+  },
+  searchView: {
+    width: '90%',
+    height: 80,
+    alignSelf: 'center',
+    marginTop: 10,
+  },
+  searchIconContainer: {
+    width: 45,
+    height: 45,
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 10,
+    // backgroundColor: '#000',
+  },
+  searchIcon: {
+    width: 45,
+    height: 45,
+    position: 'absolute',
+    right: 6,
+    padding: 10,
+  },
+  mainContainer: {
+    width: '94%',
+    alignSelf: 'center',
+    marginTop: 30,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // backgroundColor : 'pink',
+    height: '60%',
+  },
+  serviceContainer: {
+    width: '25%',
+    height: 90,
+    borderRadius: 45,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // backgroundColor: '#cdcdcd',
+    marginHorizontal: 10,
+    borderColor: '#F2712250',
+    borderWidth: 1,
+  },
+  itemWrapper:{
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  serviceImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 40,
+    // marginTop: 24,
+    // marginLeft: 3,
+    alignSelf: 'center',
+  },
+  serviceName: {
+    fontSize: 16,
+    fontWeight: '400',
+    fontFamily: 'Montserrat-Regular',
+    color: '#000',
+    marginTop: 15,
+    marginLeft: 5,
+    textAlign: 'center',
+  },
+  // suggestionText: {
+  //   fontSize: 16,
+  //   fontWeight: 'bold',
+  //   color: '#000',
+
+  //   marginHorizontal: 10,
+  //   // borderBottomWidth: 1,
+  //   borderBottomColor: '#000',
+  //   padding: 20,
+  //   backgroundColor: '#fff',
+  //   flex: 1,
+  // },
+});

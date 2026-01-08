@@ -18,50 +18,100 @@ import { FontType } from '../../Components/Constants/FontType';
 import { RFValue } from 'react-native-responsive-fontsize'; // Import for responsive font size
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useBookingContext } from '../../Context/bookingContext';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 
-type Services = {
-  id: string;
-  image: any;
-  title: string;
+// type Services = {
+//   id: string;
+//   image: any;
+//   title: string;
+//   outletName: string;
+//   price: string;
+//   schedule: string;
+// };
+
+type FirestoreBooking = {
+  id: string;          // Firestore Doc ID
+  serviceName: string; // instead of 'title'
   outletName: string;
-  price: string;
-  schedule: string;
+  price: number;       // usually a number in DB
+  date: string;        // "2026-01-07"
+  time: string;
+  image: string;       // Remote URL string
+  status: string;      // 'upcoming'
+  bookingType: string;
 };
 
 export default function Upcoming() {
-  // const [data, setData] = useState<Services[]>([]);
-  const [services, setServices] = useState<Services[]>([
-    {
-      id: '1',
-      image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-      title: 'Car Wash',
-      outletName: 'Garage Services',
-      price: '10',
-      schedule: 'May 18, 2022',
-    },
-    {
-      id: '2',
-      image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-      title: 'Kitchen Cleaning',
-      outletName: 'Kitchen Cleaning',
-      price: '10',
-      schedule: 'Cancelled',
-    },
-    {
-      id: '3',
-      image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-      title: 'Sofa Cleaning',
-      outletName: 'SofaShofa',
-      price: '10',
-      schedule: 'Completed',
-    },
-  ]);
+  // Using the context which is connected to Firestore
+  const { bookings, deleteBooking } = useBookingContext();
+  const now = new Date();
 
-  function getColorForStatus(schedule: string) {
-    switch (schedule) {
+  const getAppointmentDate = (item: any) => {
+    try {
+      if (item.date && item.time) {
+        const iso = `${item.date}T${item.time}`;
+        const d = new Date(iso);
+        if (!isNaN(d.getTime())) return d;
+        const d2 = new Date(`${item.date} ${item.time}`);
+        if (!isNaN(d2.getTime())) return d2;
+      }
+      if (item.createdAt) {
+        const d = item.createdAt.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
+        if (!isNaN(d.getTime())) return d;
+      }
+    } catch (e) {}
+    return new Date(NaN);
+  };
+
+  // upcoming: appointment date/time is in the future and not Cancelled/Completed
+  const upcomingData = bookings.filter((item) => {
+    const appt = getAppointmentDate(item);
+    if (isNaN(appt.getTime())) return false;
+    return appt.getTime() > now.getTime() && item.status !== 'Cancelled' && item.status !== 'Completed';
+  });
+
+
+  // const [data, setData] = useState<Services[]>([]);
+//   const [services, setServices] = useState<Services[]>([
+//   {
+//     id: '1',
+//     image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
+//     title: 'Car Wash',
+//     outletName: 'Auto Fix',
+//     price: '40',
+//     schedule: 'Mon, 10 AM',
+//   },
+//   {
+//     id: '2',
+//     image: require('../../assets/images/OutletHairTreatment/hairTreatment.png'),
+//     title: 'Hair Cut',
+//     outletName: 'Tony & Guy',
+//     price: '25',
+//     schedule: 'Completed',
+//   },
+//   {
+//     id: '3',
+//     image: require('../../assets/images/HomeTabs/BookingsDashboard/paw-spa.png'),
+//     title: 'Pet Wash',
+//     outletName: 'Paw Spa',
+//     price: '30',
+//     schedule: 'Tomorrow',
+//   },
+//   {
+//     id: '4',
+//     image: require('../../assets/images/HomeTabs/BookingsDashboard/ac-check.png'),
+//     title: 'AC Check',
+//     outletName: 'Air Care',
+//     price: '55',
+//     schedule: 'In Progress',
+//   }
+// ]);
+
+  function getColorForStatus(status: string) {
+    switch (status) {
       case 'Completed':
         return '#0D8056';
       case 'Cancelled':
@@ -71,8 +121,8 @@ export default function Upcoming() {
     }
   }
 
-  function getColorForPrice(schedule: string) {
-    switch (schedule) {
+  function getColorForPrice(status: string) {
+    switch (status) {
       case 'Completed':
         return '#42526E80';
       case 'Cancelled':
@@ -104,19 +154,21 @@ export default function Upcoming() {
 // jab same ayegi to condition false hojayegi kyunke 
 // condition service.id !== id hai to wo sservice bhi excude hojayegi
     const cancel = (id : string) => {
-  setServices(preServices => preServices.filter(service => service.id !== id))
+      deleteBooking(id);
+  // setServices(preServices => preServices.filter(service => service.id !== id))
   };
-  const renderItem = ({ item }: { item: Services }) => {
+  const renderItem = ({ item }: { item: FirestoreBooking
+   }) => {
     return (
       <View style={styles.itemContainer}>
         <Image
-          source={item.image}
+          source={{uri : item.image}}
           style={styles.itemImage}
           resizeMode="cover"
         />
         <View style={styles.rowContainer}>
           <View style={styles.itemDetailsContainer}>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.title}>{item.serviceName}</Text>
             <Text style={styles.outletName}>{item.outletName}</Text>
           </View>
           <View style={styles.itemScheduleContainer}>
@@ -124,7 +176,7 @@ export default function Upcoming() {
               <Text
                 style={[
                   styles.itemPriceTextBold,
-                  { color: getColorForPrice(item.schedule) },
+                  { color: getColorForPrice(item.status) },
                 ]}
               >
                 ${item.price}
@@ -142,10 +194,10 @@ export default function Upcoming() {
             <Text
               style={[
                 styles.itemSchedule,
-                { color: getColorForStatus(item.schedule) },
+                { color: getColorForStatus(item.status) },
               ]}
             >
-              {item.schedule}
+              {item.status}
             </Text>
           </View>
         </View>
@@ -153,12 +205,16 @@ export default function Upcoming() {
     );
   };
 
-  const renderHiddenItem = ({item} : {item: Services}) => {
+
+  const renderHiddenItem = ({item} : {item: FirestoreBooking}) => {
     return (
       <View style={styles.hiddenItemContainer}>
         <TouchableOpacity
           style={styles.cancelButton}
-          onPress={() => cancel(item.id)}
+          onPress={() => {
+            cancel(item.id);
+            deleteBooking(item.id);
+          }}
         >
           <Text style={styles.cancel}>x</Text>
           {/* <Image source={require('../../assets/images/HomeTabs/BookingsDashboard/cancelButton.png')} style={styles.cancelButtonImage} resizeMode='cover'/> */}
@@ -172,7 +228,7 @@ export default function Upcoming() {
     <View style={styles.container}>
       <View style={styles.mainContainer}>
         <SwipeListView
-          data={services}
+          data={upcomingData}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}
           keyExtractor={item => item.id.toString()}
@@ -218,6 +274,7 @@ const styles = StyleSheet.create({
     height: width > 360 ? 80 : 70,
     marginLeft: 10,
     marginVertical: 10,
+    borderRadius : 18
   },
   rowContainer: {
     // backgroundColor: 'pink',

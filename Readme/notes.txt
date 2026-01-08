@@ -1,0 +1,12 @@
+firebase is used for user login/signup (authentication)
+the name of the user and profile image is passed through useContext to the home screen 
+//------------
+used api context and redux both for state management (one is suffficient usually)
+loginUser is the function that logs up in using the redux while login function logs in 
+to the app using Context API which uses firebase builtin method to logsout
+
+in redux we manually updates,resets,increase or decrease any state we want using local states
+ with the redux while in context api we have used firebase builtin methods to login,logout,or 
+ even we can use firestrore to update any state, the context api just holds the state which we 
+ changes or will change!
+//------------

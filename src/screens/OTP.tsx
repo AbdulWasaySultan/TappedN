@@ -12,9 +12,15 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../Navigation/navigation';
 import CustomTextField from '../Components/TextField/index';
 import BackButton from '../Components/BackButton/BackButton';
+import { useRoute, RouteProp} from '@react-navigation/native';
+
 
 export default function OTP() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+
+const route = useRoute<RouteProp<RootStackParamList, 'OTP'>>();
+const {email} = route.params
 
   const [OTP, setOTP] = useState<string>('');
   return (
@@ -49,7 +55,7 @@ export default function OTP() {
                 ]);
                 return;
               }
-              navigation.navigate('Login');
+              navigation.navigate('ResetPassword', {email});
             }}
           >
             <Text style={styles.authenticateButtonText}>Authenticate</Text>

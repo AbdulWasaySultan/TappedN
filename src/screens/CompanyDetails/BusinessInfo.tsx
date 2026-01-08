@@ -12,9 +12,16 @@ import {
   MyTabsParamList,
   BusinessDetails,
   OutletData,
+  HomeTabsParamList,
+  RootStackParamList,
 } from '../../Navigation/navigation';
 // import { useRoute, RouteProp } from '@react-navigation/native';
 import { useOutletContext } from '../../Context/OutletContext';
+import { useServiceProviders } from '../../redux/useServiceProviders';
+import { createOrGetChat } from '../../screens/Firebase/chatUtils';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 
 type BusinessInfoProps = {
   outletId: string;
@@ -22,7 +29,52 @@ type BusinessInfoProps = {
 
 export default function BusinessInfo({ outletId }: BusinessInfoProps) {
   const { getOutletById } = useOutletContext();
+  const { getProviderById } = useServiceProviders();
+  const { fetchProviders } = useServiceProviders();
   const outletData = getOutletById(outletId);
+  const currentUser = useSelector((state: RootState) => state.user);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const handleStartChat = async (providerId: string) => {
+    try {
+      console.log('handleStartChat called with providerId:', providerId);
+      console.log('currentUser:', currentUser);
+      console.log('currentUser.uid:', currentUser?.uid);
+      
+      if (!currentUser?.uid) {
+        console.error('Error: No current user UID available');
+        return;
+      }
+
+      if (!providerId) {
+        console.error('Error: No provider ID available');
+        return;
+      }
+
+      // Create or get existing chat
+      const chatId = await createOrGetChat(currentUser.uid, providerId);
+
+      if (chatId) {
+        // Get provider details from Redux
+        const provider = getProviderById(providerId);
+      
+        
+        // Navigate to messaging screen
+        navigation.navigate('MessagingScreen', {
+          chatId,
+          serviceProvider: {
+            uid: providerId,
+            name: provider?.name || '',
+            profileImage: provider?.profileImage || '',
+            outletName: provider?.outletName || '',
+          },
+          
+        });
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+    }
+  };
 
   if (!outletData) {
     return (
@@ -35,15 +87,23 @@ export default function BusinessInfo({ outletId }: BusinessInfoProps) {
   // const route = useRoute<RouteProp<MyTabsParamList, 'BusinessInfo'>>();
   // const { outletData } = route.params;
 
-  const outletpics = [
+  const hairOutletPics = [
     require('../../assets/images/BusinessInfo/hairTreatment.png'),
     require('../../assets/images/BusinessInfo/hairCuts.png'),
     require('../../assets/images/BusinessInfo/picture1.png'),
   ];
 
+    const cleaningOutletPics = [
+    require('../../assets/images/OutletWindowCleaning/windowService.png'),
+    require('../../assets/images/OutletWindowCleaning/deepCleaning.png'),
+    require('../../assets/images/OutletWindowCleaning/windowService.png'),
+  ];
+
   // const outletpic2 =  require('../../assets/images/BusinessInfo/hairCuts2.png');
   // const outletpic3 =  require('../../assets/images/BusinessInfo/hairCuts3.png');
-  const photos = outletData?.photos || [];
+  const photosArray = outletData?.photos?.map(photo => photo.servicePicture) || [];
+  const validPhotos = photosArray.filter(url => url && url.trim() !== '');
+
   const icon1 = require('../../assets/images/BusinessInfo/radius.png');
   const icon2 = require('../../assets/images/BusinessInfo/clock.png');
   const icon3 = require('../../assets/images/BusinessInfo/contact.png');
@@ -54,8 +114,15 @@ export default function BusinessInfo({ outletId }: BusinessInfoProps) {
   const icons = [icon1, icon2, icon3, icon4, icon5, icon6];
 
   const ServicePictures = () => {
-    return outletData.photos
-      ? outletData.photos.map((photo, index) => (
+
+      const validApiPhotos = outletData?.photos?.
+      filter(photo => photo.servicePicture && 
+        photo.servicePicture.trim() !== '')
+      || [];
+
+if(validApiPhotos.length > 0){
+    return (
+       validApiPhotos.map((photo, index) => (
           <Image
             key={photo.id || index}
             source={{ uri: photo.servicePicture }}
@@ -63,14 +130,21 @@ export default function BusinessInfo({ outletId }: BusinessInfoProps) {
             resizeMode="cover"
           />
         ))
-      : outletpics.map((pics, index) => (
+      );
+      }
+
+      const localPics = outletData.id === '1'? hairOutletPics : cleaningOutletPics;
+
+    return (       
+        localPics.map((pics, index) => (
           <Image
             key={index}
             source={pics}
             style={styles.picture}
             resizeMode="cover"
           />
-        ));
+        ))
+      )
   };
 
   type BusinessInfoScreenProps = MyTabsParamList['Business Info'];
@@ -122,7 +196,31 @@ export default function BusinessInfo({ outletId }: BusinessInfoProps) {
     >
       <View style={styles.mainContainer}>
         <View style={styles.aboutContainer}>
-          <Text style={styles.title}>About</Text>
+          <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
+            <Text style={styles.title}>About</Text>
+            <TouchableOpacity onPress={() => {
+              console.log('Chat clicked - outletData:', outletData);
+              console.log('serviceProviderId:', outletData?.serviceProviderId);
+              
+              // Use serviceProviderId if available, otherwise use outlet ID as fallback
+              const providerId = outletData?.serviceProviderId || outletData?.id;
+              
+              if (providerId) {
+                console.log('Starting chat with providerId:', providerId);
+                handleStartChat(providerId);
+              } else {
+                console.log('Error: No providerId or outlet ID available');
+              }
+            }}
+            style={{backgroundColor : '#FFFF' }}
+            >
+              <Image
+                source={require('../../assets/images/BusinessInfo/chat.png')}
+                style={styles.chatIcon}
+                resizeMode='cover'
+              />
+            </TouchableOpacity>
+          </View>
           <Text style={[styles.description, { marginTop: 10 }]}>
             Location Permission will be required to view the nearby providers.{' '}
           </Text>
@@ -176,7 +274,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   description: {
-    fontSize: FontType.regular,
+    fontSize: FontType.medium,
     color: '#42526E',
     paddingHorizontal: 8,
   },
@@ -208,6 +306,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     alignSelf: 'center',
+    marginRight: 8
   },
   businessDetailsContainer: {
     marginHorizontal: 10,
@@ -253,4 +352,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginLeft: -10,
   },
+  chatIcon : {
+    width: 30,
+    height: 30,
+    alignSelf: 'center'
+  },
 });
+
+
+

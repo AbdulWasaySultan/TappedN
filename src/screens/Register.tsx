@@ -20,14 +20,20 @@ import {
   launchImageLibrary,
   MediaType,
 } from 'react-native-image-picker';
-import { useUser } from '../Context/userContext';
+// import { useUser } from '../Context/userContext';
 import BackButton from '../Components/BackButton/BackButton';
-import { useAuth } from '../Context/AuthContext';
-import { authInstance } from './Firebase/firebaseConfig';
 import { Dimensions } from 'react-native';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
+import { setUser } from '../redux/userSlice';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../redux/store';
+import { authInstance, dbInstance } from './Firebase/firebaseConfig';
+import { addDoc, collection } from '@react-native-firebase/firestore';
 
-const {width, height} = Dimensions.get('window'); 
+const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 const isLargeScreen = height > 850;
 
@@ -36,7 +42,7 @@ export default function Register() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>('');
   const [FullNameIsFocused, setFullNameIsFocused] = useState<boolean>(false);
-  const [contactNo, setContactNo] = useState<number | undefined>();
+  const [contactNo, setContactNo] = useState<string>();
   const [contactNoFieldIsFocused, setContactNoFieldIsFocused] =
     useState<boolean>();
   const [email, setEmail] = useState<string>('');
@@ -46,9 +52,8 @@ export default function Register() {
   const [passwordFieldIsFocused, setPasswordFieldIsFocused] =
     useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const { setUserFullName, setSelectedProfileImage } = useUser();
-
-  const { loading } = useAuth();
+  // const { setUserFullName, setSelectedProfileImage } = useUser();
+  const dispatch = useDispatch<AppDispatch>();
 
   const showPasswordIcon = (iconStyle: ImageStyle) => {
     return (
@@ -90,28 +95,37 @@ export default function Register() {
       return;
     }
 
-    if (isNaN(contactNo)) {
-      return Alert.alert(
-        'Invalid Contact Number',
-        'Please enter a valid contact number.',
-        [{ text: 'OK' }],
-      );
-    }
-    setUserFullName(fullName);
-    setSelectedProfileImage(selectedImage);
-
+    // if (isNaN(contactNo)) {
+    //   return Alert.alert(
+    //     'Invalid Contact Number',
+    //     'Please enter a valid contact number.',
+    //     [{ text: 'OK' }],
+    //   );
+    // }
     try {
-      const userCredential = await authInstance.createUserWithEmailAndPassword(
-        email,
-        password,
-      );
-      console.log('User created:', userCredential.user);
+      // 1. Create user in Firebase Auth
+      const userCredential = await authInstance.createUserWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
 
-      // await preload();
+      // 2. Save user data to Firestore
+      const userData = {
+        name: fullName,
+        email: email,
+        contactNo: String(contactNo),
+        address: '',
+        profileImage: selectedImage || '',
+      };
+      await dbInstance.collection('users').doc(uid).set(userData);
+
+      // 3. Update Redux
+      dispatch(setUser({
+        uid: uid,
+        ...userData,
+      }));
+      
       navigation.navigate('HomeTabs');
     } catch (error: any) {
-      // console.error('Error creating user:', error);
-      Alert.alert('Error Registering User', error.message);
+      Alert.alert('Error Registering User', error.message || 'Failed to create account');
     }
   };
 
@@ -238,24 +252,23 @@ export default function Register() {
             </View>
 
             <View style={styles.contactNoContainer}>
-            <CustomTextField
-  label="Contact Number"
-  style={styles.input}
-  placeholder="+1 234 567890"
-  value={contactNo || ''}
-  onChangeText={(text) => {
-    // Allow + and digits only
-    const cleanedText = text.replace(/[^\d+]/g, '');
+              <CustomTextField
+                label="Contact Number"
+                style={styles.input}
+                placeholder="+1 234 567890"
+                value={contactNo || ''}
+                onChangeText={(text : string)=> {
+                  // Allow + and digits only
+                  const cleanedText = text.replace(/[^\d+]/g, '');
 
-    // Update the state directly with the cleaned text
-    setContactNo(cleanedText);
-  }}
-  keyboardType="phone-pad"
-  isFocused={contactNoFieldIsFocused}
-  onFocus={() => setContactNoFieldIsFocused(true)}
-  onBlur={() => setContactNoFieldIsFocused(false)}
-/>
-
+                  // Update the state directly with the cleaned text
+                  setContactNo(cleanedText);
+                }}
+                keyboardType="phone-pad"
+                isFocused={contactNoFieldIsFocused}
+                onFocus={() => setContactNoFieldIsFocused(true)}
+                onBlur={() => setContactNoFieldIsFocused(false)}
+              />
             </View>
             <View style={styles.emailContainer}>
               <CustomTextField
@@ -325,7 +338,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     // backgroundColor: '#cdcdcd',
     width: '90%',
-    marginTop: isSmallScreen ? hp('25%') : isLargeScreen ? hp('20%') : hp('20%')
+    marginTop: isSmallScreen
+      ? hp('25%')
+      : isLargeScreen
+      ? hp('20%')
+      : hp('20%'),
   },
   boldText: {
     fontSize: wp('9%'),
@@ -335,12 +352,16 @@ const styles = StyleSheet.create({
   },
   profilePicContainer: {
     alignSelf: 'center',
-    marginTop: isSmallScreen ? hp('7.5%') : isLargeScreen ? hp('6%') : hp('6%'),  
+    marginTop: isSmallScreen ? hp('7.5%') : isLargeScreen ? hp('6%') : hp('6%'),
   },
   profilePic: {
     borderRadius: 80,
     boxSizing: 'content-box',
-    width: isSmallScreen ? wp('32.5%') : isLargeScreen ? wp('35.5%') : wp('30.5%'),
+    width: isSmallScreen
+      ? wp('32.5%')
+      : isLargeScreen
+      ? wp('35.5%')
+      : wp('30.5%'),
     height: isSmallScreen ? hp('18%') : isLargeScreen ? hp('16%') : hp('15%'),
   },
   mainContainer: {
@@ -354,16 +375,16 @@ const styles = StyleSheet.create({
   fullNameContainer: {
     justifyContent: 'center',
     marginTop: hp('3%'),
-    marginBottom: isSmallScreen? hp('3.5%') : hp('2.5%'),
+    marginBottom: isSmallScreen ? hp('3.5%') : hp('2.5%'),
     alignItems: 'center',
     width: '100%',
     height: '20%',
     // backgroundColor: 'orange',
   },
-  // isSmallScreen? hp('4%') : 
+  // isSmallScreen? hp('4%') :
   contactNoContainer: {
     justifyContent: 'center',
-    marginBottom: isSmallScreen? hp('3.5%') : hp('2.5%'),
+    marginBottom: isSmallScreen ? hp('3.5%') : hp('2.5%'),
     alignItems: 'center',
     width: '100%',
     height: '20%',
@@ -371,7 +392,7 @@ const styles = StyleSheet.create({
   },
   emailContainer: {
     justifyContent: 'center',
-    marginBottom: isSmallScreen? hp('3.5%') : hp('2.5%'),
+    marginBottom: isSmallScreen ? hp('3.5%') : hp('2.5%'),
     alignItems: 'center',
     width: '100%',
     height: '20%',
@@ -382,7 +403,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     height: '20%',
-    marginBottom: isSmallScreen? hp('3.5%') : hp('2.5%'),
+    marginBottom: isSmallScreen ? hp('3.5%') : hp('2.5%'),
     // backgroundColor: 'orange',
   },
   input: {
@@ -395,22 +416,22 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     width: '92%',
     color: '#42526E',
-    height: isSmallScreen? hp('7.5%') : hp('5.75%'),
+    height: isSmallScreen ? hp('7.5%') : hp('5.75%'),
   },
   inputFocused: {
     borderColor: '#0D8056',
   },
   iconContainer: {
     position: 'absolute',
-    right: 22,
-    top: isSmallScreen? hp('7%') : hp('5.5%'),
+    // backgroundColor : '#000',
+    right: wp('6.5%'),
+    top: isSmallScreen ? hp('7.1%') : hp('5.4%'),
   },
   icon: {
     width: wp('7.5%'),
     height: wp('7.5%'),
     tintColor: 'gray',
-    marginRight : wp('1%'),
-    marginTop : isSmallScreen? hp('0.1%') : hp('0.2%'),
+    // marginTop: isSmallScreen ? hp('0.1%') : hp('0.2%'),
   },
 
   bottomContainer: {
@@ -418,19 +439,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '88%',
     // paddingVertical: 17,
-    marginTop: isSmallScreen? wp('3%') : wp('3.5%'),
-    marginBottom : hp('7%'),
-    height: isSmallScreen? hp('25%') : hp('20%'),
+    marginTop: isSmallScreen ? wp('3%') : wp('3.5%'),
+    marginBottom: hp('7%'),
+    height: isSmallScreen ? hp('25%') : hp('20%'),
     marginHorizontal: 10,
     // backgroundColor : 'yellow',
   },
   registerButton: {
     backgroundColor: '#F27122',
     borderRadius: 10,
-    paddingVertical: isSmallScreen? hp('2.7%') : hp('2.2%'),
+    paddingVertical: isSmallScreen ? hp('2.7%') : hp('2.2%'),
     width: '92%',
     alignItems: 'center',
-    marginTop : '5%'
+    marginTop: '5%',
   },
 
   registerButtonText: {
@@ -457,20 +478,20 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   uploadOrange: {
-    width: isSmallScreen? wp('10.5%') : wp('11.25%'),
-    height: isSmallScreen? wp('10.5%') : wp('11.25%'),
+    width: isSmallScreen ? wp('10.5%') : wp('11.25%'),
+    height: isSmallScreen ? wp('10.5%') : wp('11.25%'),
     borderRadius: 40,
     position: 'absolute',
-    right: isSmallScreen? wp('1.5%') :  wp('1.5%'),
-    top: isSmallScreen? hp('-4.7%') : hp('-4.5%'),  
-    alignItems : 'center'
+    right: isSmallScreen ? wp('1.5%') : wp('1.5%'),
+    top: isSmallScreen ? hp('-4.7%') : hp('-4.5%'),
+    alignItems: 'center',
   },
   uploadIcon2: {
-    width: isSmallScreen? wp('4.2%') : wp('4.4%'),
-    height: isSmallScreen? wp('4%') : wp('4.2%'),
+    width: isSmallScreen ? wp('4.2%') : wp('4.4%'),
+    height: isSmallScreen ? wp('4%') : wp('4.2%'),
     position: 'absolute',
-    right: isSmallScreen? wp('4.5%') : wp('4.875%'),
-    top: isSmallScreen? hp('-2.7%') : hp('-2.8%'),  
+    right: isSmallScreen ? wp('4.5%') : wp('4.875%'),
+    top: isSmallScreen ? hp('-2.7%') : hp('-2.8%'),
   },
   // image: {
   //   width: '100%',

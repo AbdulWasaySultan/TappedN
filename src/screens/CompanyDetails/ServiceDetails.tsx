@@ -57,12 +57,12 @@ export default function ServiceDetails() {
     {
       id: 1,
       icon: require('../../assets/images/BusinessInfo/clock.png'),
-      description: 'Service Duration',
+      // description: 'Service Duration',
     },
     {
       id: 2,
       icon: require('../../assets/images/BusinessInfo/shop.png'),
-      description: 'Service Duration',
+      // description: 'Service Duration',
     },
   ];
 
@@ -76,7 +76,6 @@ export default function ServiceDetails() {
 
   const renderReviews = ({ item }: { item: allReviews }) => {
     return (
-      <>
         <View style={styles.reviewsRowContainer}>
           <View style={styles.profileImageContainer}>
             <Image
@@ -87,6 +86,7 @@ export default function ServiceDetails() {
                   : item.profileImage
               }
               style={styles.profileImage}
+              resizeMode='cover'
             />
           </View>
 
@@ -111,120 +111,123 @@ export default function ServiceDetails() {
             <Text style={styles.reviewDescription}>{item.description}</Text>
           </View>
         </View>
-      </>
     );
   };
 
   return (
-    <ScrollView
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <FlatList
+      data={serviceReviews || []}
+      renderItem={renderReviews}
+      keyExtractor={item => item.id.toString()}
       showsVerticalScrollIndicator={false}
-      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
-    >
-      <View style={styles.container}>
-        <BackButton />
-        <Image
-          // service.serviceImage? { uri: service.serviceImage} :
-          source={require('../../assets/images/OutletHairTreatment/hairCuts.png')}
-          resizeMode="cover"
-          style={styles.image}
-        />
-        <View style={styles.contentContainer}>
-          <View style={[styles.rowContainer]}>
-            <Text style={styles.serviceName}>{service.serviceName}</Text>
-            <View style={[styles.sevicePriceContainer]}>
-              <Text
-                style={[
-                  styles.servicePrice,
-                  {
-                    fontSize: FontType.xxlarge,
-                    fontWeight: '400',
-                    marginTop: 6,
-                  },
-                ]}
-              >
-                $
+      contentContainerStyle={{ paddingBottom: 100 }}
+      ListHeaderComponent={
+        <View style={styles.container}>
+          <BackButton />
+          <Image
+            // service.serviceImage? { uri: service.serviceImage} :
+            source={require('../../assets/images/OutletHairTreatment/hairCuts.png')}
+            resizeMode="cover"
+            style={styles.image}
+          />
+          <View style={styles.contentContainer}>
+            <View style={[styles.rowContainer]}>
+              <Text style={styles.serviceName}>{service.serviceName}</Text>
+              <View style={[styles.sevicePriceContainer]}>
+                <Text
+                  style={[
+                    styles.servicePrice,
+                    {
+                      fontSize: FontType.xxlarge,
+                      fontWeight: '400',
+                      marginTop: 6,
+                    },
+                  ]}
+                >
+                  $
+                </Text>
+                <Text style={styles.servicePrice}>{service.price}</Text>
+              </View>
+            </View>
+            <View style={styles.locationContainer}>
+              <Text style={styles.locationText}>
+                Location Permission will be required to view the nearby
+                providers. If not permission not provided, the user won't be
+                displayed any nearby providers.
               </Text>
-              <Text style={styles.servicePrice}>{service.price}</Text>
             </View>
-          </View>
-          <View style={styles.locationContainer}>
-            <Text style={styles.locationText}>
-              Location Permission will be required to view the nearby providers.
-              If not permission not provided, the user won't be displayed any
-              nearby providers.
-            </Text>
-          </View>
 
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'flex-start',
-              width: '100%',
-              marginTop: 40,
-              flex: 1,
-              // backgroundColor: 'cyan',
-            }}
-          >
-            <View style={styles.serviceDetailsContainer}>
-              <Text style={styles.serviceDetailsTitle}>Service Details</Text>
-              <View style={[styles.serviceDetailsRow]}>
-                <Image
-                  source={businessIcon[0].icon}
-                  style={styles.clockIcon}
-                  resizeMode="cover"
-                />
-                <Text style={styles.serviceDurationText}>
-                  {service.serviceDetails.serviceDuration}
-                </Text>
-              </View>
-
-              <View style={[styles.serviceDetailsRow, { marginTop: 0 }]}>
-                <Image
-                  key={businessIcon[1].id}
-                  source={businessIcon[1].icon}
-                  style={styles.shopIcon}
-                  resizeMode="cover"
-                />
-                <Text style={styles.serviceBookingTypeText}>
-                  {service.serviceDetails.serviceBookingType}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.serviceReviewsContainer}>
-            <View style={styles.serviceReviewsRow}>
-              <Text style={styles.serviceReviewsText}>Reviews</Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '3%',
-                  // backgroundColor: 'cyan',
-                }}
-              >
-                <Image
-                  source={require('../../assets/images/Others/star.png')}
-                  style={styles.starImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.serviceRating}>
-                  {service.serviceRating.ratingStars}
-                  <Text
-                    style={{
-                      fontSize: FontType.medium,
-                      fontWeight: '200',
-                      marginLeft: 5,
-                    }}
-                  >
-                    /5.0
+            <View
+              style={{
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                width: '100%',
+                marginTop: 40,
+                flex: 1,
+                // backgroundColor: 'cyan',
+              }}
+            >
+              <View style={styles.serviceDetailsContainer}>
+                <Text style={styles.serviceDetailsTitle}>Service Details</Text>
+                <View style={[styles.serviceDetailsRow]}>
+                  <Image
+                    source={businessIcon[0].icon}
+                    style={styles.clockIcon}
+                    resizeMode="cover"
+                  />
+                  <Text style={styles.serviceDurationText}>
+                    {service.serviceDetails.serviceDuration}
                   </Text>
-                </Text>
+                </View>
+
+                <View style={[styles.serviceDetailsRow, { marginTop: 0 }]}>
+                  <Image
+                    key={businessIcon[1].id}
+                    source={businessIcon[1].icon}
+                    style={styles.shopIcon}
+                    resizeMode="cover"
+                  />
+                  <Text style={styles.serviceBookingTypeText}>
+                    {service.serviceDetails.serviceBookingType}
+                  </Text>
+                </View>
               </View>
             </View>
 
-            {/* <Text style={styles.serviceRating}>{
+            <View style={styles.serviceReviewsContainer}>
+              <View style={styles.serviceReviewsRow}>
+                <Text style={styles.serviceReviewsText}>Reviews</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '3%',
+                    // backgroundColor: 'cyan',
+                  }}
+                >
+                  <Image
+                    source={require('../../assets/images/Others/star.png')}
+                    style={styles.starImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.serviceRating}>
+                    {service.serviceRating.ratingStars}
+                    <Text
+                      style={{
+                        fontSize: FontType.medium,
+                        fontWeight: '200',
+                        marginLeft: 5,
+                      }}
+                    >
+                      /5.0
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+
+              {/* <Text style={styles.serviceRating}>{
             serviceReviews && serviceReviews.length > 0
             ? (
             serviceReviews.reduce((sum, review) => 
@@ -232,54 +235,20 @@ export default function ServiceDetails() {
             // serviceReviews[0].ratingStars : 
             }
             </Text> */}
-            <View style={styles.reviewsContainer}>
-              <FlatList
-                data={
-                  serviceReviews && serviceReviews.length > 0
-                    ? serviceReviews
-                    : [
-                        {
-                          id: 'fallback-1',
-                          serviceId: 's2',
-                          name: 'Kelly Bishop',
-                          ratingStars: 0,
-                          description: 'Amazing Services',
-                          time: new Date().toISOString(),
-                          profileImage: require('../../assets/images/Review/profileImage.png'),
-                        },
-                        {
-                          id: 'fallback-2',
-                          serviceId: 's2',
-                          name: 'Sara Khalid',
-                          ratingStars: 0,
-                          description: 'Just Loved itt!',
-                          time: new Date().toISOString(),
-                          profileImage: require('../../assets/images/Review/profileImage2.png'),
-                        },
-                      ]
-                }
-                renderItem={renderReviews}
-                keyExtractor={item => item.id.toString()}
-                scrollEnabled={false}
-                ListEmptyComponent={
-                  <Text
-                    style={{ color: 'red', textAlign: 'center', marginTop: 20 }}
-                  >
-                    No reviews yet
-                  </Text>
-                }
-              />
             </View>
-
-            <OrangeButton
-              title="Book Appointment"
-              style={styles.bookAppointmentButton}
-              onPress={() => navigation.navigate('BookAppointment')}
-            ></OrangeButton>
           </View>
-        </View>
+        </View>     
+      }
+      />
+      <View style={styles.footerButtonContainer}>        
+      <OrangeButton
+          title="Book Appointment"
+          style={styles.bookAppointmentButton}
+          onPress={() => navigation.navigate('BookAppointment', { outletId: outletData.id, serviceId: service.id })}
+        >
+        </OrangeButton>
       </View>
-    </ScrollView>
+      </View>
   );
 }
 
@@ -298,10 +267,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 40,
-    marginTop: -40,
+    backgroundColor: '#ffff',
+    borderRadius: 26,
+    marginTop: -35,
     flex: 1,
+    marginBottom : 20
   },
 
   rowContainer: {
@@ -392,7 +362,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     // backgroundColor: 'pink',
-    marginTop: 40,
+    marginTop: 30,
   },
   serviceReviewsRow: {
     flexDirection: 'row',
@@ -406,48 +376,46 @@ const styles = StyleSheet.create({
     fontSize: FontType.xlarge,
     fontWeight: '600',
     marginTop: 10,
-    marginLeft: 10,
+    marginLeft: 4,
   },
   starImage: {
     width: 20,
     height: 20,
-  },
-
-  flatListContainer: {
-    marginTop: 10,
-    marginLeft: 10,
   },
   serviceRating: {
     fontSize: FontType.medium,
     fontWeight: '400',
     marginLeft: 10,
   },
-  reviewsContainer: {
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    width: '90%',
-    alignSelf: 'center',
-    // marginLeft: 15,
-    // backgroundColor: '#cdcdcd',
-    marginVertical: 15,
-  },
+  // reviewsContainer: {
+  //   justifyContent: 'flex-start',
+  //   alignItems: 'flex-start',
+  //   width: '90%',
+  //   alignSelf: 'center',
+  //   // marginLeft: 15,
+  //   backgroundColor: '#cdcdcd',
+  //   marginVertical: 15,
+  // },
   reviewsRowContainer: {
+    alignSelf : 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    width: '92%',
+    marginHorizontal : 7,
     marginVertical: 5,
     // padding: 10,
-    // backgroundColor: 'blue',
+    // backgroundColor: 'cyan',
   },
   profileImageContainer: {
     justifyContent: 'flex-start',
     alignItems: 'center',
-    // backgroundColor : 'cyan',
+    width : 82,
+    // backgroundColor : 'yellow',
   },
   profileImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     marginTop: 8,
     // backgroundColor: 'red',
   },
@@ -488,7 +456,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '60%',
-    marginVertical : 5
+    marginVertical: 5,
     // backgroundColor : 'orange',
   },
   ratingStars: {
@@ -507,11 +475,15 @@ const styles = StyleSheet.create({
     marginLeft: 3,
     // backgroundColor : 'orange'
   },
+  footerButtonContainer:{
+    padding : 5,
+    // backgroundColor : 'green',
+    marginBottom : 10,
+  },
   bookAppointmentButton: {
-    width: '101%',
+    width: '103%',
     alignSelf: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    marginBottom: 10,
     borderRadius: -8,
   },
 });

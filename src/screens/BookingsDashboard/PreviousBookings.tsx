@@ -1,86 +1,81 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Image,
   Dimensions,
   TouchableOpacity,
-  Animated,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList, ServiceReviews } from '../../Navigation/navigation';
-import { NavigationProp } from '@react-navigation/native';
-import BackButton from '../../Components/BackButton/BackButton';
-import { useState } from 'react';
-import { FontType } from '../../Components/Constants/FontType';
-import { RFValue } from 'react-native-responsive-fontsize'; // Import for responsive font size
+import { useOutletContext } from '../../Context/OutletContext';
+import { useBookingContext } from '../../Context/bookingContext';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import { RFValue } from 'react-native-responsive-fontsize';
+const FontType = {
+  small: 12,
+  regular: 14,
+  medium: 16,
+  large: 18,
+  xlarge: 20,
+};
 
 const { width, height } = Dimensions.get('window');
 
-type Services = {
-  id: string;
-  image: any;
-  title: string;
-  outletName: string;
-  price: string;
-  schedule: string;
+// Define the type for the props
+type PreviousBookingsProps = {
+  outletId: string;
 };
 
-export default function PreviousBookings() {
-  // const [data, setData] = useState<Services[]>([]);
-  const [services, setServices] = useState<Services[]>([
-    {
-      id: '1',
-      image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-      title: 'Car Wash',
-      outletName: 'Garage Services',
-      price: '10',
-      schedule: 'May 18, 2022',
-    },
-    {
-      id: '2',
-      image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-      title: 'Kitchen Cleaning',
-      outletName: 'Kitchen Cleaning',
-      price: '10',
-      schedule: 'Cancelled',
-    },
-    {
-      id: '3',
-      image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-      title: 'Sofa Cleaning',
-      outletName: 'SofaShofa',
-      price: '10',
-      schedule: 'Completed',
-    },
-  ]);
+export default function PreviousBookings({ outletId }: PreviousBookingsProps) {
+  // const { getOutletById } = useOutletContext();
+  const { getBookingById } = useBookingContext();
+  const { bookings, deleteBooking } = useBookingContext();
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  function getColorForStatus(schedule: string) {
-    switch (schedule) {
-      case 'Completed':
-        return '#0D8056';
-      case 'Cancelled':
-        return '#E50914';
-      default:
-        return '#42526E50';
-    }
-  }
+   useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        // Filter bookings from context based on outletId
+        const now = new Date();
 
-  function getColorForPrice(schedule: string) {
-    switch (schedule) {
-      case 'Completed':
-        return '#42526E80';
-      case 'Cancelled':
-        return '#42526E80';
-      default:
-        return '#F27122';
-    }
-  }
+        const getAppointmentDate = (item: any) => {
+          try {
+            if (item.date && item.time) {
+              const iso = `${item.date}T${item.time}`;
+              const d = new Date(iso);
+              if (!isNaN(d.getTime())) return d;
+              const d2 = new Date(`${item.date} ${item.time}`);
+              if (!isNaN(d2.getTime())) return d2;
+            }
+            if (item.createdAt) {
+              const d = item.createdAt.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
+              if (!isNaN(d.getTime())) return d;
+            }
+          } catch (e) {}
+          return new Date(NaN);
+        };
 
-// here service in the filter function represents the each service object in the service array
+        const filteredServices = bookings.filter((booking) => {
+          if (booking.outletId !== outletId) return false;
+          const appt = getAppointmentDate(booking);
+          const isPast = !isNaN(appt.getTime()) ? appt.getTime() < now.getTime() : false;
+          return isPast || booking.status === 'Completed';
+        });
+        setServices(filteredServices);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, [outletId, bookings]); // This effect will run when `outletId` changes
+
+
+  // here service in the filter function represents the each service object in the service array
 // preServices previous ya current value ha services state ki aur 
 // filter function un values ka naya array banata ha jo given condition ko 
 // meet krti hein toh yahan wo her service ko check krega aik aik krke 
@@ -101,14 +96,43 @@ export default function PreviousBookings() {
 // item id ko service id se match krega joke obviously same ayegi aur 
 // jab same ayegi to condition false hojayegi kyunke 
 // condition service.id !== id hai to wo sservice bhi excude hojayegi
-    const cancel = (id : string) => {
-  setServices(preServices => preServices.filter(service => service.id !== id))
+  const getColorForPrice = (schedule: string): string => {
+  // Return color based on schedule status
+  return '#F27122'; // Default color, adjust based on your logic
+};
+
+const getColorForStatus = (schedule: string): string => {
+  // Return color based on schedule status
+  switch (schedule) {
+    case 'Completed':
+      return '#4CAF50';
+    case 'Cancelled':
+      return '#E82831';
+    case 'Pending':
+      return '#FF9800';
+    default:
+      return '#42526E50';
+  }
+};
+
+const cancel = async (id: string) => {
+    try {
+      await deleteBooking(id);
+      // Remove from local state
+      setServices((prevServices) =>
+        prevServices.filter((service) => service.id !== id)
+      );
+    } catch (error) {
+      console.error('Error canceling booking:', error);
+    }
   };
-  const renderItem = ({ item }: { item: Services }) => {
+
+
+ const renderItem = ({ item }: { item: any }) => {
     return (
       <View style={styles.itemContainer}>
         <Image
-          source={item.image}
+          source={{ uri: item.image }}
           style={styles.itemImage}
           resizeMode="cover"
         />
@@ -120,28 +144,16 @@ export default function PreviousBookings() {
           <View style={styles.itemScheduleContainer}>
             <View style={styles.priceContainer}>
               <Text
-                style={[
-                  styles.itemPriceTextBold,
-                  { color: getColorForPrice(item.schedule) },
-                ]}
+                style={[styles.itemPriceTextBold, { color: getColorForPrice(item.schedule) }]}
               >
                 ${item.price}
-                <Text
-                  style={{
-                    fontSize: FontType.medium,
-                    color: '#42526E80',
-                    fontWeight: 400,
-                  }}
-                >
+                <Text style={{ fontSize: 12, color: '#42526E80', fontWeight: '400' }}>
                   /hr
                 </Text>
               </Text>
             </View>
             <Text
-              style={[
-                styles.itemSchedule,
-                { color: getColorForStatus(item.schedule) },
-              ]}
+              style={[styles.itemSchedule, { color: getColorForStatus(item.schedule) }]}
             >
               {item.schedule}
             </Text>
@@ -151,7 +163,7 @@ export default function PreviousBookings() {
     );
   };
 
-  const renderHiddenItem = ({item} : {item: Services}) => {
+ const renderHiddenItem = ({ item }: { item: any }) => {
     return (
       <View style={styles.hiddenItemContainer}>
         <TouchableOpacity
@@ -159,41 +171,46 @@ export default function PreviousBookings() {
           onPress={() => cancel(item.id)}
         >
           <Text style={styles.cancel}>x</Text>
-          {/* <Image source={require('../../assets/images/HomeTabs/BookingsDashboard/cancelButton.png')} style={styles.cancelButtonImage} resizeMode='cover'/> */}
         </TouchableOpacity>
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </View>
     );
   };
 
+ if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading bookings...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.mainContainer}>
+      <View style={[styles.mainContainer, { backgroundColor: 'pink' }]}>
         <SwipeListView
           data={services}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
           rightOpenValue={-75}
           disableRightSwipe={true}
           disableLeftSwipe={false}
           closeOnRowPress={true}
           contentContainerStyle={styles.mainContainer}
           showsVerticalScrollIndicator={false}
-
         />
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     // backgroundColor: 'pink',
   },
   mainContainer: {
-    // backgroundColor: 'yellow',
+    backgroundColor: '#cdcdcd',
     flex: 1,
     width: '95%',
     alignSelf: 'center',
@@ -202,7 +219,7 @@ const styles = StyleSheet.create({
   },
 
   itemContainer: {
-    backgroundColor: 'white',
+    backgroundColor: 'pink',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',

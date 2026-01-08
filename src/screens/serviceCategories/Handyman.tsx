@@ -19,25 +19,61 @@ import { FontType } from '../../Components/Constants/FontType';
 import { useState } from 'react';
 import BackButton from '../../Components/BackButton/BackButton';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function Handyman() {
   const route = useRoute<RouteProp<RootStackParamList, 'Handyman'>>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-   
-const allServices = [
-    { id: 1, name: 'Carpenter', image: require('../../assets/images/Handyman/Carpenter.png') },
-    { id: 2, name: 'Plumber', image: require('../../assets/images/Handyman/Plumber.png') },
-    { id: 3, name: 'Electrician', image: require('../../assets/images/Handyman/Electrician.png') },
-    { id: 4, name: 'AC Repair', image: require('../../assets/images/Handyman/AC-Repair.png') },
-    { id: 5, name: 'TV Repair', image: require('../../assets/images/Handyman/TV-Repair.png') },
-    { id: 6, name: 'Painter', image: require('../../assets/images/Handyman/Painter.png') },
-    { id: 7, name: 'Mechanic', image: require('../../assets/images/Handyman/Mechanic.png') },
-    { id: 8, name: 'Computer', image: require('../../assets/images/Handyman/Computer.png') },
-    { id: 9, name: 'Mobile', image: require('../../assets/images/Handyman/Mobile.png') },
+
+  const allServices = [
+    {
+      id: 1,
+      name: 'Carpenter',
+      image: require('../../assets/images/Handyman/Carpenter.png'),
+    },
+    {
+      id: 2,
+      name: 'Plumber',
+      image: require('../../assets/images/Handyman/Plumber.png'),
+    },
+    {
+      id: 3,
+      name: 'Electrician',
+      image: require('../../assets/images/Handyman/Electrician.png'),
+    },
+    {
+      id: 4,
+      name: 'AC Repair',
+      image: require('../../assets/images/Handyman/AC-Repair.png'),
+    },
+    {
+      id: 5,
+      name: 'TV Repair',
+      image: require('../../assets/images/Handyman/TV-Repair.png'),
+    },
+    {
+      id: 6,
+      name: 'Painter',
+      image: require('../../assets/images/Handyman/Painter.png'),
+    },
+    {
+      id: 7,
+      name: 'Mechanic',
+      image: require('../../assets/images/Handyman/Mechanic.png'),
+    },
+    {
+      id: 8,
+      name: 'Computer',
+      image: require('../../assets/images/Handyman/Computer.png'),
+    },
+    {
+      id: 9,
+      name: 'Mobile',
+      image: require('../../assets/images/Handyman/Mobile.png'),
+    },
   ];
- const [searchServices, setSearchServices] = useState<string>('');
-    const [filteredService, setFilteredService] = useState(allServices);
+  const [searchServices, setSearchServices] = useState<string>('');
+  const [filteredService, setFilteredService] = useState(allServices);
 
   const handleSearch = (text: string) => {
     setSearchServices(text);
@@ -50,7 +86,7 @@ const allServices = [
       const filtered = allServices.filter(service =>
         service.name.toLowerCase().includes(text.toLowerCase()),
       );
-      setFilteredService(filtered)
+      setFilteredService(filtered);
     }
   };
   const renderItem = ({ item }: { item: any }) => {
@@ -60,7 +96,11 @@ const allServices = [
         style={styles.serviceContainer}
         // onPress={() => navigation.navigate('ServiceDetails')}
       >
-        <Image source={item.image} style={styles.serviceImage} resizeMode='contain'/>
+        <Image
+          source={item.image}
+          style={styles.serviceImage}
+          resizeMode="contain"
+        />
         <Text numberOfLines={1} style={styles.serviceName}>
           {item.name}
         </Text>
@@ -71,7 +111,7 @@ const allServices = [
 
   return (
     // <SafeAreaView>
-    <Container style={{ backgroundColor: '#f9f9f9'}}>
+    <Container style={{ backgroundColor: '#f9f9f9' }}>
       <BackButton />
       <View style={styles.topContainer}>
         <Text style={styles.topContainerText}>Handyman</Text>
@@ -101,8 +141,7 @@ const allServices = [
         </TouchableOpacity>
       </View>
       {/*  searchView closed here */}
-      
-    
+
       <View style={styles.mainContainer}>
         <FlatList
           keyExtractor={item => item.id.toString()}
@@ -138,7 +177,6 @@ const allServices = [
   );
 }
 const styles = StyleSheet.create({
-
   // safeArea:{
   //   flex: 1,
   //   backgroundColor: '#FFFFFF',
@@ -147,7 +185,7 @@ const styles = StyleSheet.create({
   topContainer: {
     width: '90%',
     height: 60,
-    marginTop : 150,
+    marginTop: 150,
     // marginTop : Dimensions.get('window').height * 0.1,
     // backgroundColor : 'red'
   },
@@ -200,7 +238,7 @@ const styles = StyleSheet.create({
     padding: 10,
     // backgroundColor: '#000',
   },
-   searchIcon: {
+  searchIcon: {
     width: 45,
     height: 45,
     position: 'absolute',
@@ -214,10 +252,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     // backgroundColor : 'pink',
-height: '60%',
+    height: '60%',
   },
   serviceContainer: {
-    width: '25.8%',
+    width: '25%',
     height: 90,
     borderRadius: 45,
     justifyContent: 'space-between',
@@ -234,7 +272,7 @@ height: '60%',
     // marginTop: 24,
     // marginLeft: 3,
     alignSelf: 'center',
-    marginVertical : 25,
+    marginVertical: 25,
   },
   serviceName: {
     fontSize: 16,
