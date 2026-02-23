@@ -11,8 +11,7 @@ export interface DynamicBookingData {
   price: number;
   status: "Completed" | "Pending" | "Cancelled";
   image?: string;
-  title?: string;
-  outletName?: string;
+  outletName: string;
   schedule?: "Today" | "Upcoming" | "Previous";
   [key: string]: any; // Allow dynamic fields
 }

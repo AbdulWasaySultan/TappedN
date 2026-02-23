@@ -3,9 +3,7 @@ import { setServiceProviders, clearServiceProviders } from './serviceProviderSli
 import { RootState } from './store';
 // import { fetchServiceProvidersFromAPI } from '../API/api';
 import { ServiceProvider } from './serviceProviderSlice';
-import { dbInstance } from '../screens/Firebase/firebaseConfig';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { collection, getDocs } from '@react-native-firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 
 /**
  * Simple hook to get and manage service providers
@@ -17,24 +15,26 @@ export const useServiceProviders = () => {
 
   // Fetch from Firestore and store in Redux
   const fetchProviders = async () => {
-    
-    const querySnapshot = await getDocs(collection(dbInstance, 'users'));
-    const data : any = [];
     try {
-      querySnapshot.forEach((doc: { id: any; data: () => any; }) => {
-    console.log(doc.id, " => ", doc.data());
-    data.push({ uid: doc.id, ...doc.data() });  
-    });
-    dispatch(setServiceProviders(data));
-    return data;
+      const querySnapshot = await firestore().collection('users').get();
+      const data: any = [];
+
+      querySnapshot.forEach((doc) => {
+        data.push({ uid: doc.id, ...doc.data() });
+      });
+
+      console.log('Fetched providers:', data.length);
+      dispatch(setServiceProviders(data));
+      return data;
     } catch (error) {
       console.error('Error fetching providers:', error);
+      throw error;
     }
   };
-  
+
 
   // Get provider by ID
-  // .find() gets the whole providers array if 
+  // .find() gets the whole providers array if
   // the uid gets match with the p.uid
   const getProviderById = (uid: string): ServiceProvider | undefined => {
     return providers.find(p => p.uid === uid);

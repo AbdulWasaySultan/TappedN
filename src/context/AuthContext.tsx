@@ -90,7 +90,7 @@
 // import { current } from '@reduxjs/toolkit';
 // import { dbInstance } from '../screens/Firebase/firebaseConfig';
 import { EmailAuthProvider } from '@react-native-firebase/auth'; // Import EmailAuthProvider
-import { authInstance } from '../screens/Firebase/firebaseConfig'; // Import initialized auth
+import { authInstance } from '../Firebase/firebaseConfig'; // Import initialized auth
 import { Alert, ImageStyle } from 'react-native';
 
 //   // Define UserState type if not already defined

@@ -23,6 +23,9 @@ import { useOutletContext } from '../Context/OutletContext';
 import { Dimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import Geolocation from 'react-native-geolocation-service';
+import { PermissionsAndroid, Platform } from 'react-native';
+
 
 // import { useLocation } from '';
 
@@ -42,6 +45,16 @@ export default function Home() {
   const userName = useSelector((state : RootState) => state.user.name);
   const profileImage = useSelector((state : RootState) => state.user.profileImage);
   
+    async function requestLocationPermission() {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+    return true;
+  }
+
   useEffect(() => {
 
   const fetchAndSetOutlets = async () => {
@@ -59,6 +72,26 @@ export default function Home() {
     finally{
       setLoading(false)
     }
+
+const getCurrentLocation = async () => {
+  const hasPermission = await requestLocationPermission();
+  if (!hasPermission) return;
+
+  Geolocation.getCurrentPosition(
+    position => {
+      console.log(position.coords.latitude);
+      console.log(position.coords.longitude);
+    },
+    error => {
+      console.log(error.code, error.message);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 10000,
+    }
+  );
+};
 
   }
   fetchAndSetOutlets();

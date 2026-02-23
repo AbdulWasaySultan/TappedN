@@ -28,7 +28,7 @@ import {
   RouteProp,
 } from '@react-navigation/native';
 import { RootStackParamList } from '../../Navigation/navigation';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import OrangeButton from '../../Components/OrangeButton';
 import { useDynamicBooking } from '../../Context/bookingData';
@@ -131,17 +131,14 @@ export default function BookAppointment() {
         outletId: selectedOutlet?.id || '',
         serviceName: selectedService?.serviceName || '',
         outletName: selectedOutlet?.outletName || 'N/A',
-        date: selectedDate.toLocaleDateString('en-CA'), 
-      // Format: "12:30 PM"
-        time: selectedTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        date: selectedDate.toISOString().split('T')[0], // YYYY-MM-DD
+        time: selectedTime.toISOString(), // Save the FULL ISO string here!
         price: selectedService?.price || 0,
         status: 'Pending',
         contactNumber,
         schedule: bookingSchedule(),
         bookingType: selectedBooking,
         image: selectedService?.serviceImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c',
-        name: name, // ✅ Add user name
-      notes: notes, // ✅ Add notes
       });
       navigation.navigate('AppointmentConfirmed');
     } catch (error) {

@@ -26,7 +26,7 @@ import { RootState, AppDispatch } from '../../../redux/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateProfile } from '../../../redux/userSlice';
 import { ActivityIndicator } from 'react-native';
-import { authInstance,dbInstance } from '../../Firebase/firebaseConfig';
+import { authInstance,dbInstance } from '../../../Firebase/firebaseConfig';
 
 export default function ProfileSettings() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();

@@ -1,55 +1,97 @@
+// import UIKit
+// import React
+// import React_RCTAppDelegate
+// import FirebaseCore
+
+// // Note: If RCTAppDependencyProvider is not found, ensure it's in your bridging header 
+// // or available via the React_RCTAppDelegate module.
+// import ReactAppDependencyProvider 
+
+// @main
+// class AppDelegate: RCTAppDelegate {
+
+//   override func application(
+//     _ application: UIApplication,
+//     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+//   ) -> Bool {
+    
+//     // 1. Initialize Firebase first
+//     FirebaseApp.configure()
+
+//     // 2. Set the Module Name (must match your package.json 'name')
+//     self.moduleName = "TappedN"
+    
+//     // 3. Set the Dependency Provider 
+//     // This is the bridge between the New Arch and your app
+//     self.dependencyProvider = RCTAppDependencyProvider()
+
+//     // 4. Set the initial props (optional)
+//     self.initialProps = [:]
+
+//     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+//   }
+
+//   // MARK: - Bundle URL Configuration
+  
+//   override func sourceURL(for bridge: RCTBridge) -> URL? {
+//     return self.bundleURL()
+//   }
+
+//   override func bundleURL() -> URL? {
+// #if DEBUG
+//     return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+// #else
+//     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+// #endif
+//   }
+
+//   // Required for New Architecture / Concurrent Root
+//   override func recreateRootView(with bundleURL: URL!, moduleName: String!, initialProperties: [AnyHashable : Any]!, launchOptions: [AnyHashable : Any]!) -> UIView! {
+//     return super.recreateRootView(with: bundleURL, moduleName: moduleName, initialProperties: initialProperties, launchOptions: launchOptions)
+//   }
+// }
+
+
+//Old Architecture
 import UIKit
 import React
 import React_RCTAppDelegate
-import ReactAppDependencyProvider
-import Firebase
-import FirebaseAuth
 import FirebaseCore
-import FirebaseFirestore
-
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate {
-  var window: UIWindow?
+class AppDelegate: RCTAppDelegate {
 
-  var reactNativeDelegate: ReactNativeDelegate?
-  var reactNativeFactory: RCTReactNativeFactory?
-
-  func application(
+  override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    
+    // 1. Initialize Firebase
     FirebaseApp.configure()
 
-    let delegate = ReactNativeDelegate()
-    let factory = RCTReactNativeFactory(delegate: delegate)
-    delegate.dependencyProvider = RCTAppDependencyProvider()
+    // 2. Set the Module Name
+    self.moduleName = "TappedN"
+    
+    // 3. Initial props
+    self.initialProps = [:]
 
-    reactNativeDelegate = delegate
-    reactNativeFactory = factory
+    // ❌ REMOVED: self.dependencyProvider = RCTAppDependencyProvider()
+    // This is only for New Architecture. Removing it stops the search for missing headers.
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    factory.startReactNative(
-      withModuleName: "TappedN",
-      in: window,
-      launchOptions: launchOptions
-    )
-
-    return true
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-}
 
-class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
-  override func sourceURL(for bridge: RCTBridge) -> URL? {
-    self.bundleURL()
+  // MARK: - Bundle URL Configuration
+  
+  override func sourceURL(for bridge: RCTBridge!) -> URL? {
+    return self.bundleURL()
   }
 
   override func bundleURL() -> URL? {
 #if DEBUG
-    RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
 #else
-    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
   }
 }

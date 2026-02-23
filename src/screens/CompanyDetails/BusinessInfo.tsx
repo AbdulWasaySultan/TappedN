@@ -18,7 +18,7 @@ import {
 // import { useRoute, RouteProp } from '@react-navigation/native';
 import { useOutletContext } from '../../Context/OutletContext';
 import { useServiceProviders } from '../../redux/useServiceProviders';
-import { createOrGetChat } from '../../screens/Firebase/chatUtils';
+import { createOrGetChat } from '../../Firebase/chatUtils';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { useNavigation, NavigationProp } from '@react-navigation/native';

@@ -1,249 +1,82 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  Dimensions,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
-import { NavigationProp } from '@react-navigation/native';
-import BackButton from '../../Components/BackButton/BackButton';
-import { useState } from 'react';
-import { FontType } from '../../Components/Constants/FontType';
-import { RFValue } from 'react-native-responsive-fontsize'; // Import for responsive font size
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useBookingContext } from '../../Context/bookingContext';
+import { StyleSheet } from 'react-native'; // Assuming styles are shared
+import { FontType } from '../../Components/Constants/FontType';
+import { Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 800;
-
-// type Services = {
-//   id: string;
-//   image: any;
-//   title: string;
-//   outletName: string;
-//   price: string;
-//   schedule: string;
-// };
-
-type FirestoreBooking = {
-  id: string;          // Firestore Doc ID
-  serviceName: string; // instead of 'title'
-  outletName: string;
-  price: number;       // usually a number in DB
-  date: string;        // "2026-01-07"
-  time: string;
-  image: string;       // Remote URL string
-  status: string;      // 'upcoming'
-  bookingType: string;
-};
+const isSmallScreen = width < 360;
 
 export default function Upcoming() {
-  // Using the context which is connected to Firestore
-  const { bookings, deleteBooking } = useBookingContext();
+  const { bookings, updateBooking } = useBookingContext();
   const now = new Date();
+  const todayStr = now.toLocaleDateString('en-CA');
 
-  const getAppointmentDate = (item: any) => {
-    try {
-      if (item.date && item.time) {
-        const iso = `${item.date}T${item.time}`;
-        const d = new Date(iso);
-        if (!isNaN(d.getTime())) return d;
-        const d2 = new Date(`${item.date} ${item.time}`);
-        if (!isNaN(d2.getTime())) return d2;
-      }
-      if (item.createdAt) {
-        const d = item.createdAt.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
-        if (!isNaN(d.getTime())) return d;
-      }
-    } catch (e) {}
-    return new Date(NaN);
-  };
-
-  // upcoming: appointment date/time is in the future and not Cancelled/Completed
+  // 1. Filter: Date is in future + Status is Pending
   const upcomingData = bookings.filter((item) => {
-    const appt = getAppointmentDate(item);
-    if (isNaN(appt.getTime())) return false;
-    return appt.getTime() > now.getTime() && item.status !== 'Cancelled' && item.status !== 'Completed';
+    return item.date > todayStr && item.status === 'Pending';
   });
 
-
-  // const [data, setData] = useState<Services[]>([]);
-//   const [services, setServices] = useState<Services[]>([
-//   {
-//     id: '1',
-//     image: require('../../assets/images/HomeTabs/BookingsDashboard/service1.png'),
-//     title: 'Car Wash',
-//     outletName: 'Auto Fix',
-//     price: '40',
-//     schedule: 'Mon, 10 AM',
-//   },
-//   {
-//     id: '2',
-//     image: require('../../assets/images/OutletHairTreatment/hairTreatment.png'),
-//     title: 'Hair Cut',
-//     outletName: 'Tony & Guy',
-//     price: '25',
-//     schedule: 'Completed',
-//   },
-//   {
-//     id: '3',
-//     image: require('../../assets/images/HomeTabs/BookingsDashboard/paw-spa.png'),
-//     title: 'Pet Wash',
-//     outletName: 'Paw Spa',
-//     price: '30',
-//     schedule: 'Tomorrow',
-//   },
-//   {
-//     id: '4',
-//     image: require('../../assets/images/HomeTabs/BookingsDashboard/ac-check.png'),
-//     title: 'AC Check',
-//     outletName: 'Air Care',
-//     price: '55',
-//     schedule: 'In Progress',
-//   }
-// ]);
-
-  function getColorForStatus(status: string) {
-    switch (status) {
-      case 'Completed':
-        return '#0D8056';
-      case 'Cancelled':
-        return '#E50914';
-      default:
-        return '#42526E50';
-    }
-  }
-
-  function getColorForPrice(status: string) {
-    switch (status) {
-      case 'Completed':
-        return '#42526E80';
-      case 'Cancelled':
-        return '#42526E80';
-      default:
-        return '#F27122';
-    }
-  }
-
-// here service in the filter function represents the each service object in the service array
-// preServices previous ya current value ha services state ki aur 
-// filter function un values ka naya array banata ha jo given condition ko 
-// meet krti hein toh yahan wo her service ko check krega aik aik krke 
-// aur hr dafa service id ko item id se check krega 
-//   Now, when filter goes through each service:
-
-// For the first service (id: 's1'):
-// The condition is service.id !== 's2'.
-// 's1' !== 's2' is true, so this service remains in the new array.
-// For the second service (id: 's2')
-// The condition is service.id !== 's2'.
-// 's2' !== 's2' is false, so this service is excluded from the new array.
-// For the third service (id: 's3'):
-// The condition is service.id !== 's2'.
-// 's3' !== 's2' is true, so this service remains in the new array.
-
-//to jb hum cancel button pr click kreinge to woh us particular cell ki 
-// item id ko service id se match krega joke obviously same ayegi aur 
-// jab same ayegi to condition false hojayegi kyunke 
-// condition service.id !== id hai to wo sservice bhi excude hojayegi
-    const cancel = (id : string) => {
-      deleteBooking(id);
-  // setServices(preServices => preServices.filter(service => service.id !== id))
+  const updateStatus = async (id: string, newStatus: string) => {
+    try {
+      await updateBooking(id, { status: newStatus });
+    } catch (e) { console.error(e); }
   };
-  const renderItem = ({ item }: { item: FirestoreBooking
-   }) => {
-    return (
-      <View style={styles.itemContainer}>
-        <Image
-          source={{uri : item.image}}
-          style={styles.itemImage}
-          resizeMode="cover"
-        />
-        <View style={styles.rowContainer}>
-          <View style={styles.itemDetailsContainer}>
-            <Text style={styles.title}>{item.serviceName}</Text>
-            <Text style={styles.outletName}>{item.outletName}</Text>
-          </View>
-          <View style={styles.itemScheduleContainer}>
-            <View style={styles.priceContainer}>
-              <Text
-                style={[
-                  styles.itemPriceTextBold,
-                  { color: getColorForPrice(item.status) },
-                ]}
-              >
-                ${item.price}
-                <Text
-                  style={{
-                    fontSize: FontType.medium,
-                    color: '#42526E80',
-                    fontWeight: 400,
-                  }}
-                >
-                  /hr
-                </Text>
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.itemSchedule,
-                { color: getColorForStatus(item.status) },
-              ]}
-            >
-              {item.status}
-            </Text>
-          </View>
+
+  const showStatusAlert = (item: any) => {
+    Alert.alert(
+      'Manage Booking',
+      'Choose an action for this upcoming service:',
+      [
+        { text: 'Mark Completed', onPress: () => updateStatus(item.id, 'Completed') },
+        { text: 'Cancel Booking', style: 'destructive', onPress: () => updateStatus(item.id, 'Cancelled') },
+        { text: 'Close', style: 'cancel' },
+      ]
+    );
+  };
+
+  const renderItem = ({ item }: { item: any }) => (
+    <TouchableOpacity style={styles.itemContainer} onPress={() => showStatusAlert(item)}>
+      <Image source={{ uri: item.image }} style={styles.itemImage} />
+      <View style={styles.rowContainer}>
+        <View style={styles.itemDetailsContainer}>
+          <Text style={styles.serviceName}>{item.serviceName}</Text>
+          <Text style={styles.outletName}>{item.outletName}</Text>
+        </View>
+        <View style={styles.itemScheduleContainer}>
+          <Text style={styles.itemPriceTextBold}>${item.price}</Text>
+          <Text style={[styles.itemSchedule, { color: '#F27122' }]}>
+            {item.date}
+          </Text>
         </View>
       </View>
-    );
-  };
+    </TouchableOpacity>
+  );
 
-
-  const renderHiddenItem = ({item} : {item: FirestoreBooking}) => {
-    return (
-      <View style={styles.hiddenItemContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => {
-            cancel(item.id);
-            deleteBooking(item.id);
-          }}
-        >
-          <Text style={styles.cancel}>x</Text>
-          {/* <Image source={require('../../assets/images/HomeTabs/BookingsDashboard/cancelButton.png')} style={styles.cancelButtonImage} resizeMode='cover'/> */}
-        </TouchableOpacity>
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </View>
-    );
-  };
+  const renderHiddenItem = ({ item }: { item: any }) => (
+    <View style={styles.hiddenItemContainer}>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => updateStatus(item.id, 'Cancelled')}>
+        <Text style={styles.cancel}>x</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.mainContainer}>
-        <SwipeListView
-          data={upcomingData}
-          renderItem={renderItem}
-          renderHiddenItem={renderHiddenItem}
-          keyExtractor={item => item.id.toString()}
-          rightOpenValue={-75}
-          disableRightSwipe={true}
-          disableLeftSwipe={false}
-          closeOnRowPress={true}
-          contentContainerStyle={styles.mainContainer}
-          showsVerticalScrollIndicator={false}
-
-        />
-      </View>
+      <SwipeListView
+        data={upcomingData}
+        renderItem={renderItem}
+        renderHiddenItem={renderHiddenItem}
+        keyExtractor={(item) => item.id}
+        rightOpenValue={-80}
+        disableRightSwipe
+      />
     </View>
   );
 }
+
 
 
 const styles = StyleSheet.create({
@@ -268,6 +101,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 15,
     borderRadius: 20,
+
+    elevation: 5,
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   itemImage: {
     width: width > 360 ? 80 : 70, // Dynamic image size based on screen width
@@ -369,4 +209,8 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
   },
+  serviceName :{
+
+    
+  }
 })

@@ -1,5 +1,6 @@
-import { authInstance } from '../screens/Firebase/firebaseConfig';
+import { authInstance } from '../Firebase/firebaseConfig';
 import { clearUser } from '../redux/userSlice';
+import Text from 'react-native'
 
 export const handleGlobalLogout = async (dispatch: any) => {
   try {

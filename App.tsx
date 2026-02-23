@@ -1,4 +1,6 @@
-import '@react-native-firebase/app';
+import { View, Text } from 'react-native';
+
+// import '@react-native-firebase/app';
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -40,7 +42,8 @@ import MessagingScreen from './src/screens/BottomTabNavigator/Settings/Messaging
 import { RootStackParamList } from './src/Navigation/navigation';
 import { useServiceProviders } from './src/redux/useServiceProviders';
 import { Alert } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+// import messaging from '@react-native-firebase/messaging';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -58,87 +61,113 @@ function App() {
   //   return <Splash />;
   // }
 
-  const { fetchProviders } = useServiceProviders();
+  // ❌ Old way - react-native-push-notification
 
-  useEffect(() => {
-    fetchProviders(); // Load providers on app start
 
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-    });
+// Show local notification
+// async function showNotification(title: string, body: string) {
+//   await messaging().requestPermission();
+  
+//   // For local notifications with Firebase use @notifee
+// }
+  // const { fetchProviders } = useServiceProviders();
 
-    return unsubscribe;
-  }, []);
+  // useEffect(() => {
+  //   const loadProviders = async () => {
+  //     try {
+  //       console.log('Fetching service providers...');
+  //       // await fetchProviders(); // Load providers on app start
+  //       console.log('Service providers loaded successfully');
+  //     } catch (error) {
+  //       console.error('Error loading service providers:', error);
+  //     }
+  //   };
+
+    // loadProviders();
+
+    // const unsubscribe = messaging().onMessage(async remoteMessage => {
+    //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    // });
+
+    // return unsubscribe;
+  // }, []);
+
+  // return (
+  //   // <ErrorBoundary>
+  //     // {/* <AuthContextProvider> */}
+  //         <OutletContextProvider>
+  //           <BookingContextProvider>
+  //         <NavigationContainer>
+  //           <Stack.Navigator
+  //             initialRouteName="Login"
+  //             screenOptions={{ headerShown: false }}
+  //           >
+  //             <Stack.Screen name="Login" component={Login} />
+  //             <Stack.Screen name="ResetPassword" component={ResetPassword} />
+  //             <Stack.Screen name="Register" component={Register} />
+  //             <Stack.Screen
+  //               name="Home"
+  //               component={Home}
+  //               options={{
+  //                 headerShown: false,
+  //               }}
+  //             />
+  //             <Stack.Screen
+  //               name="MyTabs"
+  //               component={MyTabs}
+  //               options={{
+  //                 headerShown: false,
+  //               }}
+  //             />
+  //             <Stack.Screen
+  //               name="HomeTabs"
+  //               component={HomeTabs}
+  //               options={{
+  //                 headerShown: false,
+  //               }}
+  //             />
+  //             <Stack.Screen name="OTP" component={OTP} />
+  //             <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+
+  //             <Stack.Screen name="Filters" component={Filters} />
+  //             <Stack.Screen name="Handyman" component={Handyman} />
+  //             <Stack.Screen name="HairTreatment" component={HairTreatment} />
+  //             {/* <Stack.Screen name="WindowService" component={WindowService} /> */}
+  //             <Stack.Screen name="ViewAll" component={ViewAll} />
+  //             <Stack.Screen name="Estheticians" component={Estheticians} />
+  //             <Stack.Screen name="MusicStudio" component={MusicStudio} />
+  //             <Stack.Screen name="Barbers" component={Barbers} />
+  //             <Stack.Screen name="Yoga" component={Yoga} />
+
+  //             <Stack.Screen name="MyReview" component={MyReview} />
+  //             <Stack.Screen name="ServiceDetails" component={ServiceDetails} />
+  //             <Stack.Screen
+  //               name="BookAppointment"
+  //               component={BookAppointment}
+  //             />
+  //             <Stack.Screen
+  //               name="AppointmentConfirmed"
+  //               component={AppointmentConfirmed}
+  //             />
+  //             <Stack.Screen name="ProfileSettings" component={ProfileSettings} />              
+  //             {/* <Stack.Screen name="Loading" component={Loading} /> */}
+  //             <Stack.Screen name="ChangePassword" component={ChangePassword} />
+  //             <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+  //             <Stack.Screen name="Subscription" component={Subscription} />
+  //             <Stack.Screen name="MessagingScreen" component={MessagingScreen} />
+  //           </Stack.Navigator>
+  //         </NavigationContainer>
+  //         </BookingContextProvider>
+  //         </OutletContextProvider>
+  //     // {/* </AuthContextProvider> */}
+  //   // </ErrorBoundary>
+  // );
+
   return (
-    <ErrorBoundary>
-      {/* <AuthContextProvider> */}
-          <OutletContextProvider>
-            <BookingContextProvider>
-          <NavigationContainer>
-            <Stack.Navigator
-              initialRouteName="Login"
-              screenOptions={{ headerShown: false }}
-            >
-              <Stack.Screen name="Login" component={Login} />
-              <Stack.Screen name="ResetPassword" component={ResetPassword} />
-              <Stack.Screen name="Register" component={Register} />
-              <Stack.Screen
-                name="Home"
-                component={Home}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="MyTabs"
-                component={MyTabs}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="HomeTabs"
-                component={HomeTabs}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen name="OTP" component={OTP} />
-              <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-
-              <Stack.Screen name="Filters" component={Filters} />
-              <Stack.Screen name="Handyman" component={Handyman} />
-              <Stack.Screen name="HairTreatment" component={HairTreatment} />
-              {/* <Stack.Screen name="WindowService" component={WindowService} /> */}
-              <Stack.Screen name="ViewAll" component={ViewAll} />
-              <Stack.Screen name="Estheticians" component={Estheticians} />
-              <Stack.Screen name="MusicStudio" component={MusicStudio} />
-              <Stack.Screen name="Barbers" component={Barbers} />
-              <Stack.Screen name="Yoga" component={Yoga} />
-
-              <Stack.Screen name="MyReview" component={MyReview} />
-              <Stack.Screen name="ServiceDetails" component={ServiceDetails} />
-              <Stack.Screen
-                name="BookAppointment"
-                component={BookAppointment}
-              />
-              <Stack.Screen
-                name="AppointmentConfirmed"
-                component={AppointmentConfirmed}
-              />
-              <Stack.Screen name="ProfileSettings" component={ProfileSettings} />              
-              {/* <Stack.Screen name="Loading" component={Loading} /> */}
-              <Stack.Screen name="ChangePassword" component={ChangePassword} />
-              <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-              <Stack.Screen name="Subscription" component={Subscription} />
-              <Stack.Screen name="MessagingScreen" component={MessagingScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
-          </BookingContextProvider>
-          </OutletContextProvider>
-      {/* </AuthContextProvider> */}
-    </ErrorBoundary>
-  );
+  <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+    <Text>APP WORKING</Text>
+  </View>
+);
 }
 
 export default App;

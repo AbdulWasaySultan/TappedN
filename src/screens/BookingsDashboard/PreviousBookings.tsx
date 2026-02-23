@@ -6,11 +6,12 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { useOutletContext } from '../../Context/OutletContext';
 import { useBookingContext } from '../../Context/bookingContext';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { RFValue } from 'react-native-responsive-fontsize';
+
 const FontType = {
   small: 12,
   regular: 14,
@@ -21,81 +22,23 @@ const FontType = {
 
 const { width, height } = Dimensions.get('window');
 
-// Define the type for the props
-type PreviousBookingsProps = {
-  outletId: string;
-};
+export default function PreviousBookings() {
+  const { bookings, deleteBooking, updateBooking } = useBookingContext();
+  // const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-export default function PreviousBookings({ outletId }: PreviousBookingsProps) {
-  // const { getOutletById } = useOutletContext();
-  const { getBookingById } = useBookingContext();
-  const { bookings, deleteBooking } = useBookingContext();
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        setLoading(true);
         // Filter bookings from context based on outletId
         const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const previousBookingData = bookings.filter((item) => {
+        const appt = new Date(`${item.date}T${item.time}`);
+        const isDone = item.status === 'Completed' || item.status === 'Cancelled';
+        const hasPassed = now > appt;
 
-        const getAppointmentDate = (item: any) => {
-          try {
-            if (item.date && item.time) {
-              const iso = `${item.date}T${item.time}`;
-              const d = new Date(iso);
-              if (!isNaN(d.getTime())) return d;
-              const d2 = new Date(`${item.date} ${item.time}`);
-              if (!isNaN(d2.getTime())) return d2;
-            }
-            if (item.createdAt) {
-              const d = item.createdAt.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
-              if (!isNaN(d.getTime())) return d;
-            }
-          } catch (e) {}
-          return new Date(NaN);
-        };
-
-        const filteredServices = bookings.filter((booking) => {
-          if (booking.outletId !== outletId) return false;
-          const appt = getAppointmentDate(booking);
-          const isPast = !isNaN(appt.getTime()) ? appt.getTime() < now.getTime() : false;
-          return isPast || booking.status === 'Completed';
+          return isDone || hasPassed
         });
-        setServices(filteredServices);
-      } catch (error) {
-        console.error('Error fetching services:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+        // setServices(filteredServices);
 
-    fetchServices();
-  }, [outletId, bookings]); // This effect will run when `outletId` changes
-
-
-  // here service in the filter function represents the each service object in the service array
-// preServices previous ya current value ha services state ki aur 
-// filter function un values ka naya array banata ha jo given condition ko 
-// meet krti hein toh yahan wo her service ko check krega aik aik krke 
-// aur hr dafa service id ko item id se check krega 
-//   Now, when filter goes through each service:
-
-// For the first service (id: 's1'):
-// The condition is service.id !== 's2'.
-// 's1' !== 's2' is true, so this service remains in the new array.
-// For the second service (id: 's2')
-// The condition is service.id !== 's2'.
-// 's2' !== 's2' is false, so this service is excluded from the new array.
-// For the third service (id: 's3'):
-// The condition is service.id !== 's2'.
-// 's3' !== 's2' is true, so this service remains in the new array.
-
-//to jb hum cancel button pr click kreinge to woh us particular cell ki 
-// item id ko service id se match krega joke obviously same ayegi aur 
-// jab same ayegi to condition false hojayegi kyunke 
-// condition service.id !== id hai to wo sservice bhi excude hojayegi
   const getColorForPrice = (schedule: string): string => {
   // Return color based on schedule status
   return '#F27122'; // Default color, adjust based on your logic
@@ -115,14 +58,16 @@ const getColorForStatus = (schedule: string): string => {
   }
 };
 
+const markSchedule = async (bookingId: string) => {
+  await updateBooking(bookingId, {status : 'Completed'})
+}
+
 const cancel = async (id: string) => {
     try {
       await deleteBooking(id);
-      // Remove from local state
-      setServices((prevServices) =>
-        prevServices.filter((service) => service.id !== id)
-      );
-    } catch (error) {
+    } 
+    
+    catch (error) {
       console.error('Error canceling booking:', error);
     }
   };
@@ -130,7 +75,7 @@ const cancel = async (id: string) => {
 
  const renderItem = ({ item }: { item: any }) => {
     return (
-      <View style={styles.itemContainer}>
+      <TouchableOpacity style={styles.itemContainer} onPress={() => markSchedule(item.bookingId)}>
         <Image
           source={{ uri: item.image }}
           style={styles.itemImage}
@@ -159,7 +104,7 @@ const cancel = async (id: string) => {
             </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -189,7 +134,7 @@ const cancel = async (id: string) => {
     <View style={styles.container}>
       <View style={[styles.mainContainer, { backgroundColor: 'pink' }]}>
         <SwipeListView
-          data={services}
+          data={previousBookingData}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}
           keyExtractor={(item) => item.id.toString()}

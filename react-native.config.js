@@ -6,5 +6,10 @@
 //     assets: ['./assets/fonts'],
 //   };
   module.exports = {
-    assets: ['./src/assets/fonts/'], // 👈 tells RN where to find fonts
+    project: {
+    ios: {},
+    android: {},
+  },
+    assets: ['./src/assets/fonts/PTSans'], // 👈 tells RN where to find fonts
+
   };

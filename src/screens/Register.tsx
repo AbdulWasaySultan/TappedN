@@ -30,7 +30,7 @@ import {
 import { setUser } from '../redux/userSlice';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../redux/store';
-import { authInstance, dbInstance } from './Firebase/firebaseConfig';
+import { authInstance, dbInstance } from '../Firebase/firebaseConfig';
 import { addDoc, collection } from '@react-native-firebase/firestore';
 
 const { width, height } = Dimensions.get('window');

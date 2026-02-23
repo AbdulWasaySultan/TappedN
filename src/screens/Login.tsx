@@ -26,7 +26,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useDispatch } from 'react-redux';
 import { setUser } from '../redux/userSlice';
 import { AppDispatch } from '../redux/store';
-import { authInstance, dbInstance } from './Firebase/firebaseConfig';
+import { authInstance, dbInstance } from '../Firebase/firebaseConfig';
 
 const {width, height} = Dimensions.get('window');
 

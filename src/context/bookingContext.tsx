@@ -1,10 +1,10 @@
 // bookingContext.tsx
 import React from 'react';
 import { useState, useEffect, createContext, useContext } from 'react';
-import { authInstance, dbInstance } from '../screens/Firebase/firebaseConfig';
+import { authInstance, dbInstance } from '../Firebase/firebaseConfig';
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
- type Booking = {
+ export type Booking = {
   id: string;
   outletId: string;
   serviceName: string;
@@ -14,7 +14,6 @@ import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
   status: string;
   createdAt: any;
   image?: string;
-  title?: string;
   outletName?: string;
   schedule?: string;
   userId?: string;
@@ -77,8 +76,13 @@ export const BookingContextProvider = ({ children }: { children: React.ReactNode
     }
   };
 
-  const getBookingById = (id: string): Booking | undefined => {
-    return bookings.find((booking) => booking.id === id);
+  const getBookingById = (id: string): Booking => {
+    const booking = bookings.find((booking) => booking.id === id);
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+    return booking;
+    
   };
 
   const updateBooking = async (id: string, updates: Partial<Booking>) => {

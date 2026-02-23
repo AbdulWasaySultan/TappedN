@@ -12,7 +12,7 @@ import { TextInput } from 'react-native';
 import { useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import BackButton from '../Components/BackButton/BackButton';
-import { authInstance  } from './Firebase/firebaseConfig';
+import { authInstance  } from '../Firebase/firebaseConfig';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../Navigation/navigation';
 
