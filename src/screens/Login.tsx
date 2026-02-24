@@ -225,7 +225,7 @@ export default function Login() {
       // 2. Get user data from Firestore
       const userDoc = await dbInstance.collection('users').doc(uid).get();
       
-      if (userDoc.exists()) {
+      if (userDoc.exists) {
         const userData = userDoc.data();
         // 3. Update Redux with user data from Firestore
         dispatch(setUser({

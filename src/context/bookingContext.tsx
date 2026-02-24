@@ -38,8 +38,15 @@ export const BookingContextProvider = ({ children }: { children: React.ReactNode
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!authInstance.currentUser) return;
+    console.log('[BookingContext] Mounting - current user:', authInstance.currentUser?.uid);
+    
+    // Don't fetch bookings if user is not logged in
+    if (!authInstance.currentUser) {
+      console.log('[BookingContext] User not logged in, skipping bookings fetch');
+      return;
+    }
 
+    console.log('[BookingContext] Setting up bookings listener...');
     const subscriber = dbInstance
       .collection("Bookings")
       .where("userId", "==", authInstance.currentUser.uid)
@@ -50,14 +57,18 @@ export const BookingContextProvider = ({ children }: { children: React.ReactNode
           snapshot.forEach((doc) => {
             list.push({ id: doc.id, ...doc.data() } as Booking);
           });
+          console.log('[BookingContext] Bookings updated:', list.length);
           setBookings(list);
         },
         (error) => {
-          console.log("Error fetching bookings: ", error);
+          console.error("[BookingContext] Error fetching bookings: ", error);
         }
       );
 
-    return () => subscriber();
+    return () => {
+      console.log('[BookingContext] Cleaning up listener');
+      subscriber();
+    };
   }, []);
 
   const saveBooking = async (data: Omit<Booking, "id" | "createdAt" | "userId">) => {

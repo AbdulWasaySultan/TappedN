@@ -1,7 +1,5 @@
-import { View, Text } from 'react-native';
-
 // import '@react-native-firebase/app';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // import { ActivityIndicator, StatusBar } from 'react-native';
@@ -31,17 +29,15 @@ import ChangePassword from './src/screens/BottomTabNavigator/Settings/ChangePass
 import HomeTabs from './src/screens/BottomTabNavigator/HomeTabs';
 import ProfileSettings from './src/screens/BottomTabNavigator/Settings/ProfileSettings';
 import PrivacyPolicy from './src/screens/BottomTabNavigator/Settings/PrivacyPolicy';
-import Settings from './src/screens/BottomTabNavigator/Settings';
 import Subscription from './src/screens/Subscription';
-import Loading from './src/screens/Loading';
+// import Loading from './src/screens/Loading';
 // import SearchResults from './src/screens/services/searchResults';
 // import { AuthContextProvider } from './src/Context/AuthContext';
 import { OutletContextProvider } from './src/Context/OutletContext'; 
 import { BookingContextProvider } from './src/Context/bookingContext';
 import MessagingScreen from './src/screens/BottomTabNavigator/Settings/MessagingScreen';
 import { RootStackParamList } from './src/Navigation/navigation';
-import { useServiceProviders } from './src/redux/useServiceProviders';
-import { Alert } from 'react-native';
+// import { useServiceProviders } from './src/redux/useServiceProviders';
 // import messaging from '@react-native-firebase/messaging';
 
 
@@ -92,82 +88,82 @@ function App() {
     // return unsubscribe;
   // }, []);
 
-  // return (
-  //   // <ErrorBoundary>
-  //     // {/* <AuthContextProvider> */}
-  //         <OutletContextProvider>
-  //           <BookingContextProvider>
-  //         <NavigationContainer>
-  //           <Stack.Navigator
-  //             initialRouteName="Login"
-  //             screenOptions={{ headerShown: false }}
-  //           >
-  //             <Stack.Screen name="Login" component={Login} />
-  //             <Stack.Screen name="ResetPassword" component={ResetPassword} />
-  //             <Stack.Screen name="Register" component={Register} />
-  //             <Stack.Screen
-  //               name="Home"
-  //               component={Home}
-  //               options={{
-  //                 headerShown: false,
-  //               }}
-  //             />
-  //             <Stack.Screen
-  //               name="MyTabs"
-  //               component={MyTabs}
-  //               options={{
-  //                 headerShown: false,
-  //               }}
-  //             />
-  //             <Stack.Screen
-  //               name="HomeTabs"
-  //               component={HomeTabs}
-  //               options={{
-  //                 headerShown: false,
-  //               }}
-  //             />
-  //             <Stack.Screen name="OTP" component={OTP} />
-  //             <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-
-  //             <Stack.Screen name="Filters" component={Filters} />
-  //             <Stack.Screen name="Handyman" component={Handyman} />
-  //             <Stack.Screen name="HairTreatment" component={HairTreatment} />
-  //             {/* <Stack.Screen name="WindowService" component={WindowService} /> */}
-  //             <Stack.Screen name="ViewAll" component={ViewAll} />
-  //             <Stack.Screen name="Estheticians" component={Estheticians} />
-  //             <Stack.Screen name="MusicStudio" component={MusicStudio} />
-  //             <Stack.Screen name="Barbers" component={Barbers} />
-  //             <Stack.Screen name="Yoga" component={Yoga} />
-
-  //             <Stack.Screen name="MyReview" component={MyReview} />
-  //             <Stack.Screen name="ServiceDetails" component={ServiceDetails} />
-  //             <Stack.Screen
-  //               name="BookAppointment"
-  //               component={BookAppointment}
-  //             />
-  //             <Stack.Screen
-  //               name="AppointmentConfirmed"
-  //               component={AppointmentConfirmed}
-  //             />
-  //             <Stack.Screen name="ProfileSettings" component={ProfileSettings} />              
-  //             {/* <Stack.Screen name="Loading" component={Loading} /> */}
-  //             <Stack.Screen name="ChangePassword" component={ChangePassword} />
-  //             <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-  //             <Stack.Screen name="Subscription" component={Subscription} />
-  //             <Stack.Screen name="MessagingScreen" component={MessagingScreen} />
-  //           </Stack.Navigator>
-  //         </NavigationContainer>
-  //         </BookingContextProvider>
-  //         </OutletContextProvider>
-  //     // {/* </AuthContextProvider> */}
-  //   // </ErrorBoundary>
-  // );
-
   return (
-  <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-    <Text>APP WORKING</Text>
-  </View>
-);
+     <ErrorBoundary>
+       {/* <AuthContextProvider> */}
+          <OutletContextProvider>
+            <BookingContextProvider>
+          <NavigationContainer>
+            <Stack.Navigator
+              initialRouteName="Login"
+              screenOptions={{ headerShown: false }}
+            >
+              <Stack.Screen name="Login" component={Login} />
+              <Stack.Screen name="ResetPassword" component={ResetPassword} />
+              <Stack.Screen name="Register" component={Register} />
+              <Stack.Screen
+                name="Home"
+                component={Home}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="MyTabs"
+                component={MyTabs}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="HomeTabs"
+                component={HomeTabs}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen name="OTP" component={OTP} />
+              <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+
+              <Stack.Screen name="Filters" component={Filters} />
+              <Stack.Screen name="Handyman" component={Handyman} />
+              <Stack.Screen name="HairTreatment" component={HairTreatment} />
+              {/* <Stack.Screen name="WindowService" component={WindowService} /> */}
+              <Stack.Screen name="ViewAll" component={ViewAll} />
+              <Stack.Screen name="Estheticians" component={Estheticians} />
+              <Stack.Screen name="MusicStudio" component={MusicStudio} />
+              <Stack.Screen name="Barbers" component={Barbers} />
+              <Stack.Screen name="Yoga" component={Yoga} />
+
+              <Stack.Screen name="MyReview" component={MyReview} />
+              <Stack.Screen name="ServiceDetails" component={ServiceDetails} />
+              <Stack.Screen
+                name="BookAppointment"
+                component={BookAppointment}
+              />
+              <Stack.Screen
+                name="AppointmentConfirmed"
+                component={AppointmentConfirmed}
+              />
+              <Stack.Screen name="ProfileSettings" component={ProfileSettings} />              
+              {/* <Stack.Screen name="Loading" component={Loading} /> */}
+              <Stack.Screen name="ChangePassword" component={ChangePassword} />
+              <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+              <Stack.Screen name="Subscription" component={Subscription} />
+              <Stack.Screen name="MessagingScreen" component={MessagingScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+          </BookingContextProvider>
+          </OutletContextProvider>
+      {/* </AuthContextProvider> */}
+    </ErrorBoundary>
+  );
+
+//   return (
+//   <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+//     <Text>APP WORKING</Text>
+//   </View>
+// );
 }
 
 export default App;
