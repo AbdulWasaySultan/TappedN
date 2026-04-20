@@ -52,10 +52,9 @@
 // }
 
 
-//Old Architecture
 import UIKit
-import React
 import React_RCTAppDelegate
+import ReactAppDependencyProvider // 👈 Crucial for 0.83+ performance
 import FirebaseCore
 
 @main
@@ -66,24 +65,23 @@ class AppDelegate: RCTAppDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     
-    // 1. Initialize Firebase
+    // Initialize Firebase
     FirebaseApp.configure()
 
-    // 2. Set the Module Name
-    self.moduleName = "TappedN"
-    
-    // 3. Initial props
-    self.initialProps = [:]
+    // ⚡️ LIGHTNING UPGRADE: Set the Dependency Provider
+    // This removes the need for your manual singleton checks.
+    // It tells React Native how to find TurboModules instantly.
+    self.dependencyProvider = RCTAppDependencyProvider()
 
-    // ❌ REMOVED: self.dependencyProvider = RCTAppDependencyProvider()
-    // This is only for New Architecture. Removing it stops the search for missing headers.
+    self.moduleName = "TappedN"
+    self.initialProps = [:]
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   // MARK: - Bundle URL Configuration
   
-  override func sourceURL(for bridge: RCTBridge!) -> URL? {
+  override func sourceURL(for bridge: RCTBridge) -> URL? {
     return self.bundleURL()
   }
 

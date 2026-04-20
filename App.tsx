@@ -1,169 +1,25 @@
-// import '@react-native-firebase/app';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-// import { ActivityIndicator, StatusBar } from 'react-native';
-import Login from './src/screens/Login';
-import ResetPassword from './src/screens/ResetPassword';
-import Register from './src/screens/Register';
-import OTP from './src/screens/OTP';
-import Home from './src/screens/Home';
-import Filters from './src/screens/Filters';
-import Handyman from './src/screens/serviceCategories/Handyman';
-import ForgotPassword from './src/screens/ForgotPassword';
-
-import AppointmentConfirmed from './src/screens/BookingDetails/AppointmentConfirmed';
-import HairTreatment from './src/screens/HairTreatment';
-// import WindowService from './src/screens/WindowService';
-import ViewAll from './src/screens/serviceCategories/ViewAll';
-import Estheticians from './src/screens/serviceCategories/Estheticians';
-import MusicStudio from './src/screens/serviceCategories/Music Studio';
-import Yoga from './src/screens/serviceCategories/Yoga';
-import Barbers from './src/screens/serviceCategories/Barbers';
-import MyTabs from './src/screens/MyTabs';
-import MyReview from './src/screens/CompanyDetails/MyReview';
-import ErrorBoundary from './src/Components/RenderError/ErrorBoundary';
-import ServiceDetails from './src/screens/CompanyDetails/ServiceDetails';
-import BookAppointment from './src/screens/BookingDetails/BookAppointment';
-import ChangePassword from './src/screens/BottomTabNavigator/Settings/ChangePassword';
-import HomeTabs from './src/screens/BottomTabNavigator/HomeTabs';
-import ProfileSettings from './src/screens/BottomTabNavigator/Settings/ProfileSettings';
-import PrivacyPolicy from './src/screens/BottomTabNavigator/Settings/PrivacyPolicy';
-import Subscription from './src/screens/Subscription';
-// import Loading from './src/screens/Loading';
-// import SearchResults from './src/screens/services/searchResults';
-// import { AuthContextProvider } from './src/Context/AuthContext';
-import { OutletContextProvider } from './src/Context/OutletContext'; 
-import { BookingContextProvider } from './src/Context/bookingContext';
-import MessagingScreen from './src/screens/BottomTabNavigator/Settings/MessagingScreen';
-import { RootStackParamList } from './src/Navigation/navigation';
-// import { useServiceProviders } from './src/redux/useServiceProviders';
-// import messaging from '@react-native-firebase/messaging';
-
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
+import ErrorBoundary from './src/Components/Global/RenderError/ErrorBoundary';
+import { OutletContextProvider } from './src/Context/API/Outlet/OutletContext';
+import { BookingContextProvider } from './src/Context/Firebase/Booking/bookingContext';
+import RootNavigator from './src/Stacks/RootStack';
+import { AuthContextProvider } from './src/Context/Firebase/UserData/AuthContext';
 
 function App() {
-  // const [isSplashVisible, setIsSplashVisible] = useState(true);
-
-  // useEffect(() => {
-  //  const timer = setTimeout(() => {
-  //     setIsSplashVisible(false);
-  //   }, 3000);
-  //   return () => clearTimeout(timer);
-  // }, []);
-  // if (isSplashVisible) {
-
-  //   return <Splash />;
-  // }
-
-  // ❌ Old way - react-native-push-notification
-
-
-// Show local notification
-// async function showNotification(title: string, body: string) {
-//   await messaging().requestPermission();
-  
-//   // For local notifications with Firebase use @notifee
-// }
-  // const { fetchProviders } = useServiceProviders();
-
-  // useEffect(() => {
-  //   const loadProviders = async () => {
-  //     try {
-  //       console.log('Fetching service providers...');
-  //       // await fetchProviders(); // Load providers on app start
-  //       console.log('Service providers loaded successfully');
-  //     } catch (error) {
-  //       console.error('Error loading service providers:', error);
-  //     }
-  //   };
-
-    // loadProviders();
-
-    // const unsubscribe = messaging().onMessage(async remoteMessage => {
-    //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-    // });
-
-    // return unsubscribe;
-  // }, []);
-
   return (
-     <ErrorBoundary>
-       {/* <AuthContextProvider> */}
-          <OutletContextProvider>
-            <BookingContextProvider>
-          <NavigationContainer>
-            <Stack.Navigator
-              initialRouteName="Login"
-              screenOptions={{ headerShown: false }}
-            >
-              <Stack.Screen name="Login" component={Login} />
-              <Stack.Screen name="ResetPassword" component={ResetPassword} />
-              <Stack.Screen name="Register" component={Register} />
-              <Stack.Screen
-                name="Home"
-                component={Home}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="MyTabs"
-                component={MyTabs}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="HomeTabs"
-                component={HomeTabs}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen name="OTP" component={OTP} />
-              <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-
-              <Stack.Screen name="Filters" component={Filters} />
-              <Stack.Screen name="Handyman" component={Handyman} />
-              <Stack.Screen name="HairTreatment" component={HairTreatment} />
-              {/* <Stack.Screen name="WindowService" component={WindowService} /> */}
-              <Stack.Screen name="ViewAll" component={ViewAll} />
-              <Stack.Screen name="Estheticians" component={Estheticians} />
-              <Stack.Screen name="MusicStudio" component={MusicStudio} />
-              <Stack.Screen name="Barbers" component={Barbers} />
-              <Stack.Screen name="Yoga" component={Yoga} />
-
-              <Stack.Screen name="MyReview" component={MyReview} />
-              <Stack.Screen name="ServiceDetails" component={ServiceDetails} />
-              <Stack.Screen
-                name="BookAppointment"
-                component={BookAppointment}
-              />
-              <Stack.Screen
-                name="AppointmentConfirmed"
-                component={AppointmentConfirmed}
-              />
-              <Stack.Screen name="ProfileSettings" component={ProfileSettings} />              
-              {/* <Stack.Screen name="Loading" component={Loading} /> */}
-              <Stack.Screen name="ChangePassword" component={ChangePassword} />
-              <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-              <Stack.Screen name="Subscription" component={Subscription} />
-              <Stack.Screen name="MessagingScreen" component={MessagingScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
-          </BookingContextProvider>
-          </OutletContextProvider>
-      {/* </AuthContextProvider> */}
+    <ErrorBoundary>
+      <OutletContextProvider>
+        <BookingContextProvider>
+          <AuthContextProvider>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </AuthContextProvider>
+        </BookingContextProvider>
+      </OutletContextProvider>
     </ErrorBoundary>
   );
-
-//   return (
-//   <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-//     <Text>APP WORKING</Text>
-//   </View>
-// );
 }
 
 export default App;

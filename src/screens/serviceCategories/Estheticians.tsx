@@ -13,12 +13,12 @@ import {
 import { useNavigation,useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../Navigation/navigation';
 import { NavigationProp } from '@react-navigation/native';
-import BackButton from '../../Components/BackButton/BackButton';
+import BackButton from '../../Components/Global/BackButton/BackButton';
 import { useState } from 'react';
 import { FontType } from '../../Components/Constants/FontType';
 import { RFValue } from 'react-native-responsive-fontsize'; // Import for responsive font size
 import { SwipeListView } from 'react-native-swipe-list-view';
-import Container from '../../Components/Container'; 
+import Container from '../../Components/Layout/Container'; 
 
 const { width, height } = Dimensions.get('window');
 

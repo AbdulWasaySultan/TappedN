@@ -1,4 +1,9 @@
 {
   "name": "TappedN",
-  "displayName": "TappedN"
+  "displayName": "TappedN",
+  "extra": {
+    "eas": {
+      "projectId": "c15097cf-8d59-4f1e-bbfd-7a740514ebc9"
+    }
+  }
 }

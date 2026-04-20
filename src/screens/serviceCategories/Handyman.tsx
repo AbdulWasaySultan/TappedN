@@ -11,13 +11,13 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
-import Container from '../../Components/Container';
+import Container from '../../Components/Layout/Container';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../Navigation/navigation';
 import { FontType } from '../../Components/Constants/FontType';
 import { useState } from 'react';
-import BackButton from '../../Components/BackButton/BackButton';
+import BackButton from '../../Components/Global/BackButton/BackButton';
 
 const { width, height } = Dimensions.get('window');
 

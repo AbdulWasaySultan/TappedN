@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../Navigation/navigation';
 import { NavigationProp } from '@react-navigation/native';
-import BackButton from '../../Components/BackButton/BackButton';
+import BackButton from '../../Components/Global/BackButton/BackButton';
 
 export default function Yoga() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();

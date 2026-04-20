@@ -2,9 +2,9 @@ import { View, Text, StyleSheet, TouchableOpacity,Image,TextInput,FlatList } fro
 import React from 'react'
 import { useNavigation,NavigationContainer,NavigationProp } from '@react-navigation/native'
 import { RootStackParamList } from '../../Navigation/navigation'
-import BackButton from '../../Components/BackButton/BackButton';
+import BackButton from '../../Components/Global/BackButton/BackButton';
 import { useState } from 'react'
-import Container from '../../Components/Container'
+import Container from '../../Components/Layout/Container'
 import { useRoute,RouteProp } from '@react-navigation/native'
 import { FontType } from '../../Components/Constants/FontType'
 // export default function Barber() {

@@ -16,6 +16,34 @@
     {
       "path": "src/assets/fonts/PTSans/PTSansBoldItalic.ttf",
       "sha1": "8909d6fd6c65904e10ae48052fb49a29a3294ea3"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratLight.ttf",
+      "sha1": "1db8878a7654208b6c55402f6ff717e03a312e1e"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratThin.ttf",
+      "sha1": "447838642258b95e8a61df1770189f962cc0741b"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratBold.ttf",
+      "sha1": "c7d907722af4fb845ab97d515bb414f29651f000"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratMedium.ttf",
+      "sha1": "4656e40419da86a5fec473ea8e7fc0efef183f05"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratRegular.ttf",
+      "sha1": "1c8119b38eef1914a4fbd9f6cfdedf198445ab97"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratSemiBold.ttf",
+      "sha1": "d491c9d0af61faef59ca807737b560170f547f5b"
+    },
+    {
+      "path": "src/assets/fonts/Montserrat/MontserratExtraBold.ttf",
+      "sha1": "4a2cbee7a7ab79ab2cf0c120c962384dc240b237"
     }
   ]
 }

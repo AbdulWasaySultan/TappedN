@@ -37,30 +37,6 @@ export type ServicesData = {
   serviceDetails: ServiceDetail;
   serviceRating: OutletRating;
 };
-// users: [
-//   {
-//   id: 'u1',
-//   image:'https://chatgpt.com/s/m_68efa0f55874819190b61f2ccfcfc477',
-//     name: 'Ali',
-//     message: 'can u send me the design pics',
-//     time: '3hr ago',
-//   },
-//   {
-//   id: 'u2',
-//   image:'https://chatgpt.com/s/m_68efa62a2ea48191bae7f266e3915741',
-//     name: 'zohaib',
-//     message: 'can u send me the design pics',
-//     time: '8hr ago',
-//   },
-
-// {
-//   id: 'u3',
-//   image:'https://chatgpt.com/s/m_68efa62a2ea48191bae7f266e3915741',
-//     name: 'Andrew Benjamin',
-//     message: 'can u send me the design pics',
-//     time: '1 min ago',
-// }
-// ]
 // Extra details for a service
 export type ServiceDetail = {
   id: string;
@@ -122,7 +98,7 @@ export type MyTabsParamList = {
     // serviceReviews: ServiceReviews[];
     outletId : string;
   };
-  'Business Info': {
+  BusinessInfo: {
     // outletData: OutletData;
     //     serviceReviews: ServiceReviews[];
     outletId : string;
@@ -133,23 +109,6 @@ export type MyTabsParamList = {
     outletId : string;
   };
 };
-
-// type Users = {
-//   id: string;
-//   image: any;
-//   name: string;
-//   message: string;
-//   time: string;
-// };
-// export type UserProfile = {
-//   id: string;
-//   name: string;
-//   profileImage: any;
-//   outletName?: string;
-//   contactNo : string;
-//   role: string;
-//   createdAt: any;
-// };
 export type HomeTabsParamList = {
   Home: undefined;
   BookingsDashboard: undefined;
@@ -158,8 +117,37 @@ export type HomeTabsParamList = {
   Settings: undefined;
 };
 
+// ServiceStack nested navigator param list
+export type ServiceStackParamList = {
+  Filters: undefined;
+  Handyman: undefined;
+  ViewAll: undefined;
+  Estheticians: undefined;
+  MusicStudio: undefined;
+  Barbers: undefined;
+  Yoga: undefined;
+  MyReview: undefined;
+  ServiceDetails: { outletId: string; serviceId: string };
+  BookAppointment: { outletId: string; serviceId: string };
+  AppointmentConfirmed: undefined;
+  MyTabs: { outletId: string };
+};
+
+// HomeStack navigator param list (includes both direct screens and nested ServiceStack)
+export type HomeStackParamList = {
+  Home: undefined;
+  HomeTabs: undefined;
+  ServiceStack: { screen: keyof ServiceStackParamList; params?: any };
+  ChangePassword: undefined;
+  ProfileSettings: undefined;
+  PrivacyPolicy: undefined;
+  Subscription: undefined;
+  MessagingScreen: { chatId: string; serviceProvider: { uid: string; name: string; profileImage: string; outletName?: string } };
+};
+
 // Define a type for your Root Stack Navigator screens and their parameters
 export type RootStackParamList = {
+  Splash : undefined
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
@@ -261,7 +249,7 @@ export type ServiceScreenProps = NativeStackScreenProps<
 >;
 export type BusinessInfoScreenProps = NativeStackScreenProps<
   MyTabsParamList,
-  'Business Info'
+  'BusinessInfo'
 >;
 export type ReviewsScreenProps = NativeStackScreenProps<
   MyTabsParamList,
@@ -341,190 +329,8 @@ export type MessagesScreenProps = NativeStackScreenProps<
   HomeTabsParamList,
   'Messages'
 >;  
-/*
-{
-"outlets": [
-{
-"id": "1",
-"outletName": "Athens Cleaners",
-"outletBgImage": "https://via.placeholder.com/300x200.png?text=Window+Service+BG",
-"outletIcon": "https://via.placeholder.com/100.png?text=Window+Icon",
-"rating": 4.2,
-"services": [
-{
-"id": "s1",
-"serviceName": "Window Cleaning",
-"serviceImage": "https://via.placeholder.com/150.png?text=Window+Cleaning",
-"price": 30,
-"serviceDetails": {
-"id": "sd1",
-"serviceDuration": "30mins - 45mins",
-"serviceBookingType": "Home Visit"
-},
-"serviceRating": {
-"id": "srating1",
-"ratingStars": 4,
-"reviews": 122
-}
-},
-{
-"id": "s2",
-"serviceName": "Deep Cleaning",
-"serviceImage": "https://via.placeholder.com/150.png?text=Deep+Cleaning",
-"price": 45,
-"serviceDetails": {
-"id": "sd2",
-"serviceDuration": "45mins - 60mins",
-"serviceBookingType": "Home Visit"
-},
-"serviceRating": {
-"id": "srating2",
-"ratingStars": 5,
-"reviews": 89
-}
-}
-],
-"photos": [
-{
-"id": "p1",
-"servicePicture": "https://via.placeholder.com/150.png?text=Photo+1"
-},
-{
-"id": "p2",
-"servicePicture": "https://via.placeholder.com/150.png?text=Photo+2"
-}
-],
-"businessDetails": [
-{
-"id": "bd1-1",
-"icon": "https://example.com/assets/images/BusinessInfo/radius.png",
-"description": "250 Meters Away"
-},
-{
-"id": "bd1-2",
-"icon": "https://example.com/assets/images/BusinessInfo/clock.png",
-"description": "9:00 am - 8:00 pm"
-},
-{
-"id": "bd1-3",
-"icon": "https://example.com/assets/images/BusinessInfo/contact.png",
-"description": "+1 234 567890"
-},
-{
-"id": "bd1-4",
-"icon": "https://example.com/assets/images/BusinessInfo/shop.png",
-"description": "In-Store & Home Service"
-},
-{
-"id": "bd1-5",
-"icon": "https://example.com/assets/images/BusinessInfo/globeIcon.png",
-"description": "www.toniandguy.com"
-},
-{
-"id": "bd1-6",
-"icon": "https://example.com/assets/images/BusinessInfo/locationIcon.png",
-"description": "Shop 101, Hamilton Courts, New York City"
-}
-],
-"outletRating": {
-"id": "orating1",
-"ratingStars": 4,
-"reviews": 239
-}
-},
-{
-"id": "2",
-"outletName": "Toni & Guy Salon",
-"outletBgImage": "https://via.placeholder.com/300x200.png?text=Hair+Treatment+BG",
-"outletIcon": "https://via.placeholder.com/100.png?text=Hair+Icon",
-"rating": 4.5,
-"services": [
-{
-"id": "s3",
-"serviceName": "Hair Treatment",
-"serviceImage": "https://via.placeholder.com/150.png?text=Hair+Treatment",
-"price": 25,
-"serviceDetails": {
-"id": "sd3",
-"serviceDuration": "30mins - 45mins",
-"serviceBookingType": "In-Store & Home Service"
-},
-"serviceRating": {
-"id": "srating3",
-"ratingStars": 5,
-"reviews": 120
-}
-},
-{
-"id": "s4",
-"serviceName": "Hair Cut",
-"serviceImage": "https://via.placeholder.com/150.png?text=Hair+Cut",
-"price": 20,
-"serviceDetails": {
-"id": "sd4",
-"serviceDuration": "15mins - 30mins",
-"serviceBookingType": "In-Store"
-},
-"serviceRating": {
-"id": "srating4",
-"ratingStars": 4,
-"reviews": 75
-}
-}
-],
-"photos": [
-{
-"id": "p3",
-"servicePicture": "https://via.placeholder.com/150.png?text=Photo+1"
-},
-{
-"id": "p4",
-"servicePicture": "https://via.placeholder.com/150.png?text=Photo+2"
-},
-{
-"id": "p5",
-"servicePicture": "https://via.placeholder.com/150.png?text=Photo+3"
-}
-],
-"businessDetails": [
-{
-"id": "bd2-1",
-"icon": "https://example.com/assets/images/BusinessInfo/radius.png",
-"description": "250 Meters Away"
-},
-{
-"id": "bd2-2",
-"icon": "https://example.com/assets/images/BusinessInfo/clock.png",
-"description": "9:00 am - 8:00 pm"
-},
-{
-"id": "bd2-3",
-"icon": "https://example.com/assets/images/BusinessInfo/contact.png",
-"description": "+1 234 567890"
-},
-{
-"id": "bd2-4",
-"icon": "https://example.com/assets/images/BusinessInfo/shop.png",
-"description": "In-Store & Home Service"
-},
-{
-"id": "bd2-5",
-"icon": "https://example.com/assets/images/BusinessInfo/globeIcon.png",
-"description": "www.toniandguy.com"
-},
-{
-"id": "bd2-6",
-"icon": "https://example.com/assets/images/BusinessInfo/locationIcon.png",
-"description": "Shop 101, Hamilton Courts, New York City"
-}
-],
-"outletRating": {
-"id": "orating2",
-"ratingStars": 4.5,
-"reviews": 337
-}
-}
-]
-}
 
-*/
+export type SplashScreenProps = NativeStackScreenProps<
+HomeTabsParamList,
+'Messages'
+>;
