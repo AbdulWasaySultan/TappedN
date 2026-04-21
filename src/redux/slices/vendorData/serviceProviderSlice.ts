@@ -1,14 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 // Simple provider interface
-export interface ServiceProvider {
-  uid: string;
+export interface ServiceProviderData {
   name: string;
   profileImage: string;
   contactNo?: string;
   outletName?: string;
 }
 
+export interface ServiceProvider extends ServiceProviderData{
+  uid: string;
+}
 export interface ServiceProviderState {
   providers: ServiceProvider[];
 }

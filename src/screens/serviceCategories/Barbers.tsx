@@ -7,6 +7,7 @@ import { useState } from 'react'
 import Container from '../../Components/Layout/Container'
 import { useRoute,RouteProp } from '@react-navigation/native'
 import { FontType } from '../../Components/Constants/FontType'
+import { barbersSubCategories } from '../../utils/constants/serviceCategoryData';
 // export default function Barber() {
 //     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 //   return (
@@ -27,29 +28,16 @@ import { FontType } from '../../Components/Constants/FontType'
 export default function Barbers() {
   const route = useRoute<RouteProp<RootStackParamList, 'Barbers'>>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
-  const allServices = [
-    { id: 1, name: 'Haircut', image: require('../../assets/images/Barbers/hair-cut.png') },
-    { id: 2, name: 'Shave', image: require('../../assets/images/Barbers/shave.png') },
-    { id: 3, name: 'Beard Trim', image: require('../../assets/images/Barbers/beard-trimming.png') },
-    { id: 4, name: 'Hair Color', image: require('../../assets/images/Barbers/hair-color.png') },
-    { id: 5, name: 'Hair Styling', image: require('../../assets/images/Barbers/hair-styling.png') },
-    { id: 6, name: 'Scalp Treatment', image: require('../../assets/images/Barbers/scalp.png') },
-    { id: 7, name: 'Facial', image: require('../../assets/images/Barbers/facial.png') },
-    { id: 8, name: 'Hair Wash', image: require('../../assets/images/Barbers/hair-washing.png') },
-    { id: 9, name: 'Hair Transplant', image: require('../../assets/images/Barbers/hairTransplant.png') },
-  ];
-
   const [searchServices, setSearchServices] = useState<string>('');
-  const [filteredService, setFilteredService] = useState(allServices);
+  const [filteredService, setFilteredService] = useState(barbersSubCategories);
 
   const handleSearch = (text: string) => {
     setSearchServices(text);
 
     if (text.trim() === '') {
-      setFilteredService(allServices);
+      setFilteredService(barbersSubCategories);
     } else {
-      const filtered = allServices.filter(service =>
+      const filtered = barbersSubCategories.filter(service =>
         service.name.toLowerCase().includes(text.toLowerCase()),
       );
       setFilteredService(filtered);

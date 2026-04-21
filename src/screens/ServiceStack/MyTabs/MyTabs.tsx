@@ -29,7 +29,7 @@ import BusinessInfo from '../MyTabs/BusinessInfo';
 import BackButton from '../../../Components/Global/BackButton/BackButton';
 import { FontType } from '../../../Components/Constants/FontType';
 import { useOutletContext } from '../../../Context/API/Outlet/OutletContext';
-import { getSafeImageSource } from '../../../utils/imageSource';
+import SafeImage from '../../../Components/Global/SafeImage';
 
 const Tab = createMaterialTopTabNavigator<MyTabsParamList>();
 
@@ -45,27 +45,25 @@ const ServiceCompany = ({ outlet }: { outlet: OutletData}) => {
   return (
     <View style={{ backgroundColor: '#fff', width : '100%' }}>
       <BackButton />
-      <Image
-        source={
+      <SafeImage
+        uri={outletId === '2' ? '' : outlet.outletBgImage}
+        fallbackSource={
           outletId === '2'
             ? require('../../../assets/images/OutletHairTreatment/OutletPics/pic1.png')
-            : getSafeImageSource(
-                outlet.outletBgImage,
-                require('../../../assets/images/OutletWindowCleaning/windowService.png'),
-              )
+            : require('../../../assets/images/OutletWindowCleaning/windowService.png')
         }
         resizeMode="cover"
         style={styles.image}
+        deferUntilInteractions
       />
 
       <View style={styles.contentContainer}>
-      <Image
-        source={getSafeImageSource(
-          outlet.outletIcon,
-          require('../../../assets/images/OutletHairTreatment/OutletLogo/outlet.png'),
-        )}
+      <SafeImage
+        uri={outlet.outletIcon}
+        fallbackSource={require('../../../assets/images/OutletHairTreatment/OutletLogo/outlet.png')}
         style={styles.outletIcon}
         resizeMode='contain'
+        deferUntilInteractions
 
   // source={typeof outlet.outletIcon === 'string'
   //   ? { uri: outlet.outletIcon }

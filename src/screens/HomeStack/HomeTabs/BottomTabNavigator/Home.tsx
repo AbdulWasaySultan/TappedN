@@ -17,10 +17,11 @@ import {
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList, OutletData, HomeStackParamList } from '../../../../Navigation/navigation' // **CHANGE 1: Import OutletData type**
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import ViewAll from '../../../Shared/ViewAll';
 
 import Container from '../../../../Components/Layout/Container'
 import { FontType } from '../../../../Components/Constants/FontType';
-import { getSafeImageSource } from '../../../../utils/imageSource';
+import SafeImage from '../../../../Components/Global/SafeImage';
 
 import { fetchAllOutlets } from '../../../../API/api';
 
@@ -114,7 +115,9 @@ const getCurrentLocation = async () => {
     console.log('searchServices', searchServices);
   };
   const handleViewAll = () => {
-    navigation.navigate('Subscription');
+    navigation.navigate('ServiceStack', {
+      screen : 'ViewAll'
+    });
   };
   const renderOutlets = ({ item }: { item: OutletData }) => {
     const fallbackImage = require('../../../../assets/images/OutletWindowCleaning/windowService.png');
@@ -136,18 +139,13 @@ const getCurrentLocation = async () => {
             })
         }
       >
-        <Image source={ 
-          item.outletBgImage && !imageError
-          ? getSafeImageSource(
-              item.outletBgImage,
-              item.id == '1' ? fallbackImage : fallbackImage2,
-            )
-          : item.id == '1' ? fallbackImage : fallbackImage2
-        }
+        <SafeImage
+          uri={item.outletBgImage}
+          fallbackSource={item.id == '1' ? fallbackImage : fallbackImage2}
           style={styles.serviceImage}
-          onError={() => {setImageError(true)}}
           resizeMode="cover"
-          />
+          deferUntilInteractions
+        />
 
         <View style={styles.serviceDetailsColumn}>
           <View style={styles.serviceDetailsRow}>
@@ -307,15 +305,12 @@ if(loading){
                     </Text>
                   </Text>
                 </View>
-                <Image
-                  source={
-                    profileImage
-                      ? getSafeImageSource(profileImage, 
-                        require('../../../../assets/images/Others/profile.png'))
-                      : require('../../../../assets/images/Others/profile.png')
-                  }
+                <SafeImage
+                  uri={profileImage}
+                  fallbackSource={require('../../../../assets/images/Others/profile.png')}
                   style={styles.userImage}
                   resizeMode="cover"
+                  deferUntilInteractions
                 />
               </View>
               <Text style={styles.orangeTitle}>Good Afternoon</Text>
@@ -323,10 +318,7 @@ if(loading){
             
 <View style={styles.searchWrapper}>
   <Image
-    source={getSafeImageSource(
-      require('../../../../assets/images/Home/search.png'), 
-      require('../../../../assets/images/Others/profile.png')
-    )}
+    source={require('../../../../assets/images/Home/search.png')}
     style={styles.searchIcon}
   />
 
@@ -346,10 +338,7 @@ if(loading){
     onPress={() => navigation.navigate('ServiceStack', { screen: 'Filters' })}
   >
     <Image
-      source={getSafeImageSource(
-        require('../../../../assets/images/Home/filter.png'), 
-        require('../../../../assets/images/Others/profile.png')
-      )}
+      source={require('../../../../assets/images/Home/filter.png')}
       style={styles.filterIcon}
     />
   </TouchableOpacity>
@@ -402,10 +391,7 @@ if(loading){
                 <Text style={styles.nearByText}>Nearby Services</Text>
                 <View style={styles.rowContainer}>
                   <Image
-                    source={getSafeImageSource(
-                      require('../../../../assets/images/Home/naerbyRadiusGPSIcon.png'), 
-                      require('../../../../assets/images/Others/profile.png')
-                    )}
+                    source={require('../../../../assets/images/Home/naerbyRadiusGPSIcon.png')}
                     style={styles.nearByRadiusGPSIcon}
                   />
                   <Text style={styles.nearByRadiusText}>1 FLE, Porto</Text>

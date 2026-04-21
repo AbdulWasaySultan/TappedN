@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import { FontType } from '../../../../Components/Constants/FontType';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation, NavigationProp, CommonActions } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../Navigation/navigation';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { getSafeImageSource } from '../../../../utils/imageSource';
 
@@ -42,16 +44,33 @@ export default function Settings() {
     navigation.navigate('PrivacyPolicy');
   };
 
+  const handleSubscription = () => {
+      navigation.navigate('Subscription')
+  }
+
+  const handleArrowButton = () => {
+    return (
+    <Image
+    source={getSafeImageSource(
+      require('../../../../assets/images/HomeTabs/Settings/arrow-button.png'), 
+      require('../../../../assets/images/HomeTabs/Settings/arrow-button.png')
+    )}
+    style={styles.arrowIcon}
+    
+  />
+    )
+  }
+
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
         onPress: async () => {
-          console.log('1. Logout option clicked');
           const success = await handleGlobalLogout(dispatch);
           if (success) {
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                // navigation.popToTop();
+                navigation.replace('Login');
           }
         },
       },
@@ -59,6 +78,8 @@ export default function Settings() {
   };
 
   return (
+<SafeAreaProvider>
+  <SafeAreaView style={{ flex: 1 }}>
     <View style={styles.container}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Settings</Text>
@@ -71,13 +92,9 @@ export default function Settings() {
           onPress={handleProfileSettings}
         >
           <View style={styles.imageContainer}>
-            <Image
-              source={getSafeImageSource(
-                require('../../../../assets/images/HomeTabs/Settings/profile-settings.png'), 
-                require('../../../../assets/images/Others/profile.png') 
-              )}
-              style={styles.icon}
-            />
+           <Image source={require('../../../../assets/images/Others/profileIcon.png')}
+           style={styles.icon}
+           resizeMode='cover'/>
           </View>
 
           <View style={styles.textContainer}>
@@ -88,13 +105,7 @@ export default function Settings() {
               style={styles.arrowButton}
               onPress={handleProfileSettings}
             >
-              <Image
-                source={getSafeImageSource(
-                  require('../../../../assets/images/HomeTabs/Settings/arrow-button.png'), 
-                  require('../../../../assets/images/Others/arrow-button.png')
-                )}
-                style={styles.arrowIcon}
-              />
+            { handleArrowButton()}
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -108,7 +119,7 @@ export default function Settings() {
             <Image
               source={getSafeImageSource(
                 require('../../../../assets/images/HomeTabs/Settings/change-password.png'), 
-                require('../../../../assets/images/Others/profile.png') 
+                require('../../../../assets/images/HomeTabs/Settings/change-password.png') 
               )}
               style={styles.icon}
               resizeMode="cover"
@@ -123,13 +134,7 @@ export default function Settings() {
               style={styles.arrowButton}
               onPress={handleChangePassword}
             >
-              <Image
-                source={getSafeImageSource(
-                  require('../../../../assets/images/HomeTabs/Settings/arrow-button.png'), 
-                  require('../../../../assets/images/Others/arrow-button.png')
-                )}
-                style={styles.arrowIcon}
-              />
+           { handleArrowButton()}
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -143,7 +148,7 @@ export default function Settings() {
             <Image
               source={getSafeImageSource(
                 require('../../../../assets/images/HomeTabs/Settings/privacy-policy.png'), 
-                require('../../../../assets/images/Others/profile.png') 
+                require('../../../../assets/images/HomeTabs/Settings/privacy-policy.png') 
               )}
               style={styles.icon}
             />
@@ -157,13 +162,7 @@ export default function Settings() {
               style={styles.arrowButton}
               onPress={handlePrivacyPolicy}
             >
-              <Image
-                source={getSafeImageSource(
-                  require('../../../../assets/images/HomeTabs/Settings/arrow-button.png'), 
-                  require('../../../../assets/images/Others/arrow-button.png')
-                )}
-                style={styles.arrowIcon}
-              />
+          { handleArrowButton()}
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -177,7 +176,7 @@ export default function Settings() {
             <Image
               source={getSafeImageSource(
                 require('../../../../assets/images/HomeTabs/Settings/logout.png'), 
-                require('../../../../assets/images/Others/profile.png') 
+                require('../../../../assets/images/HomeTabs/Settings/logout.png') 
               )}
               style={styles.icon}
             />
@@ -187,13 +186,7 @@ export default function Settings() {
               <Text style={styles.optionText}>Logout</Text>
             </View>
             <TouchableOpacity style={styles.arrowButton} onPress={handleLogout}>
-              <Image
-                source={getSafeImageSource(
-                  require('../../../../assets/images/HomeTabs/Settings/arrow-button.png'), 
-                  require('../../../../assets/images/Others/arrow-button.png')
-                )}
-                style={styles.arrowIcon}
-              />
+           { handleArrowButton()}
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -203,7 +196,7 @@ export default function Settings() {
             <Image
               source={getSafeImageSource(
                 require('../../../../assets/images/HomeTabs/Settings/dark-mode.png'), 
-                require('../../../../assets/images/Others/profile.png') 
+                require('../../../../assets/images/HomeTabs/Settings/dark-mode.png') 
               )}
               style={styles.icon}
             />
@@ -222,7 +215,7 @@ export default function Settings() {
                   <Image
                     source={getSafeImageSource(
                       require('../../../../assets/images/HomeTabs/Settings/temp1.png'), 
-                      require('../../../../assets/images/Others/profile.png') 
+                      require('../../../../assets/images/HomeTabs/Settings/temp1.png') 
                     )}
                     style={styles.darkmodeIcon}
                     resizeMode="cover"
@@ -230,7 +223,7 @@ export default function Settings() {
                   <Image
                     source={getSafeImageSource(
                       require('../../../../assets/images/HomeTabs/Settings/temp2.png'), 
-                      require('../../../../assets/images/Others/profile.png') 
+                      require('../../../../assets/images/HomeTabs/Settings/temp2.png') 
                     )}
                     style={styles.darkmodeIcon2}
                     resizeMode="cover"
@@ -241,7 +234,7 @@ export default function Settings() {
                   <Image
                     source={getSafeImageSource(
                       require('../../../../assets/images/HomeTabs/Settings/temp3.png'), 
-                      require('../../../../assets/images/Others/profile.png') 
+                      require('../../../../assets/images/HomeTabs/Settings/temp3.png') 
                     )}
                     style={styles.darkmodeIcon3}
                     resizeMode="cover"
@@ -249,7 +242,7 @@ export default function Settings() {
                   <Image
                     source={getSafeImageSource(
                       require('../../../../assets/images/HomeTabs/Settings/temp4.png'), 
-                      require('../../../../assets/images/Others/profile.png') 
+                      require('../../../../assets/images/HomeTabs/Settings/temp4.png') 
                     )}
                     style={styles.darkmodeIcon}
                     resizeMode="cover"
@@ -259,8 +252,38 @@ export default function Settings() {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.options}
+          activeOpacity={0.5}
+          onPress={handleSubscription}
+        >
+          <View style={styles.imageContainer}>
+            <Image
+              source={getSafeImageSource(
+                require('../../../../assets/images/HomeTabs/Settings/subscription.png'), 
+                require('../../../../assets/images/HomeTabs/Settings/subscription.png') 
+              )}
+              style={{width: 30, height : 30}}
+            />
+          </View>
+
+          <View style={styles.textContainer}>
+            <View style={styles.optionTextContainer}>
+              <Text style={styles.optionText}>Subscription</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.arrowButton}
+              onPress={handleSubscription}
+            >
+              {handleArrowButton()}
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
+  </SafeAreaView>
+</SafeAreaProvider>
   );
 }
 

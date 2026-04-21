@@ -19,6 +19,7 @@ import { FontType } from '../../Components/Constants/FontType';
 import { RFValue } from 'react-native-responsive-fontsize'; // Import for responsive font size
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Container from '../../Components/Layout/Container'; 
+import { estheticiansSubCategories, handymanSubCategories, serviceCategories, ServiceCategory } from '../../utils/constants/serviceCategoryData';
 
 const { width, height } = Dimensions.get('window');
 
@@ -312,29 +313,28 @@ const { width, height } = Dimensions.get('window');
 export default function Estheticians() {
   const route = useRoute<RouteProp<RootStackParamList, 'Estheticians'>>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
   // Updated services for Estheticians
-  const allServices = [
-    { id: 1, name: 'Basic Facial', image: require('../../assets/images/Estheticians/facial.png') },
-    { id: 2, name: 'Chemical Peel', image: require('../../assets/images/Estheticians/peel.png') },
-    { id: 3, name: 'Microderm', image: require('../../assets/images/Estheticians/microderm.png') },
-    { id: 4, name: 'Waxing', image: require('../../assets/images/Estheticians/waxing.png') },
-    { id: 5, name: 'Lash Lift', image: require('../../assets/images/Estheticians/lashes.png') },
-    { id: 6, name: 'Brow Tint', image: require('../../assets/images/Estheticians/brows.png') },
-    { id: 7, name: 'Extractions', image: require('../../assets/images/Estheticians/extractions.png') },
-    { id: 8, name: 'Dermaplane', image: require('../../assets/images/Estheticians/dermaplaning.png') },
-    { id: 9, name: 'Skin Consult', image: require('../../assets/images/Estheticians/skinConsultant.png') },
-  ];
+  //  const allServices = [
+  //   { id: 1, name: 'Basic Facial', image: require('../../assets/images/Estheticians/facial.png') },
+  //   { id: 2, name: 'Chemical Peel', image: require('../../assets/images/Estheticians/peel.png') },
+  //   { id: 3, name: 'Microderm', image: require('../../assets/images/Estheticians/microderm.png') },
+  //   { id: 4, name: 'Waxing', image: require('../../assets/images/Estheticians/waxing.png') },
+  //   { id: 5, name: 'Lash Lift', image: require('../../assets/images/Estheticians/lashes.png') },
+  //   { id: 6, name: 'Brow Tint', image: require('../../assets/images/Estheticians/brows.png') },
+  //   { id: 7, name: 'Extractions', image: require('../../assets/images/Estheticians/extractions.png') },
+  //   { id: 8, name: 'Dermaplane', image: require('../../assets/images/Estheticians/dermaplaning.png') },
+  //   { id: 9, name: 'Skin Consult', image: require('../../assets/images/Estheticians/skinConsultant.png') },
+  // ];
 
   const [searchServices, setSearchServices] = useState<string>('');
-  const [filteredService, setFilteredService] = useState(allServices);
+  const [filteredService, setFilteredService] = useState(estheticiansSubCategories);
 
   const handleSearch = (text: string) => {
     setSearchServices(text);
     if (text.trim() === '') {
-      setFilteredService(allServices);
+      setFilteredService(estheticiansSubCategories);
     } else {
-      const filtered = allServices.filter(service =>
+      const filtered = estheticiansSubCategories.filter(service =>
         service.name.toLowerCase().includes(text.toLowerCase()),
       );
       setFilteredService(filtered);

@@ -29,7 +29,7 @@ export const getUserProfile = async (userId: string) => {
 export const sendMessage = async (
   chatId: string,
   senderId: string,
-  // receiverId: string,
+  receiverId: string,
   text: string
 ) => {
   try {
@@ -41,7 +41,7 @@ export const sendMessage = async (
       .collection('messages')
       .add({
         senderId,
-        // receiverId,
+        receiverId,
         text: text.trim(),
         timestamp: firestore.FieldValue.serverTimestamp(),
         type: 'text',

@@ -108,7 +108,7 @@ export type MyTabsParamList = {
     // outletReviews: OutletReview[];
     outletId : string;
   };
-};
+}; 
 export type HomeTabsParamList = {
   Home: undefined;
   BookingsDashboard: undefined;
@@ -171,7 +171,13 @@ export type RootStackParamList = {
   AppointmentConfirmed : undefined;
 
   MyReview: undefined;
-  MyTabs: { outletId: string};
+// In your navigation types file, update MyTabs:
+
+  // ... other routes
+  MyTabs: { 
+    outletId: string;
+    filteredOutlets?: OutletData[]; // Optional filtered results
+  };
   // ServiceDetails: { service: ServicesData; outlet: OutletData; serviceReviews: ServiceReviews[]};
    ServiceDetails: {outletId : string, serviceId : string};
 

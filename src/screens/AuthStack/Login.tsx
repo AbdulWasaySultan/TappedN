@@ -240,6 +240,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginTop: hp('15%'),
     flex: 0.8,
+    // backgroundColor: '#000',
+
   },
   boldText: {
     fontSize: wp('9%'),
@@ -268,15 +270,17 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 2,
     borderColor: '#ccc',
+    
     borderRadius: 10,
     fontSize: wp('4%'),
     marginLeft: 12,
     paddingHorizontal: wp('5%'),
-    paddingVertical: hp('2.5%'),
+    // paddingVertical: hp('2.5%'),
     width: '95%',
     color: '#42526E',
     height: height < 800 ? hp('7.5%') : hp('6%'),
   },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

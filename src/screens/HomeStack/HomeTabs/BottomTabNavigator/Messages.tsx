@@ -166,7 +166,7 @@ import { RootStackParamList } from '../../../../Navigation/navigation';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 import { RFValue } from 'react-native-responsive-fontsize';
-import { getSafeImageSource } from '../../../../utils/imageSource';
+import SafeImage from '../../../../Components/Global/SafeImage';
 
 
 type ChatItem = {
@@ -237,12 +237,11 @@ export default function Messages() {
         })
       }
     >
-      <Image
-        source={getSafeImageSource(
-          item.serviceProvider.profileImage,
-          require('../../../../assets/images/Others/MeAvatar.png'),
-        )}
+      <SafeImage
+        uri={item.serviceProvider.profileImage}
+        fallbackSource={require('../../../../assets/images/Others/MeAvatar.png')}
         style={styles.itemImage}
+        deferUntilInteractions
       />
 
       <View style={styles.textContainer}>

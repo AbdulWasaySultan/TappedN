@@ -1,4 +1,5 @@
-import React from 'react';
+// Filters.tsx
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,134 +7,156 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
-import BackButton from '../../Components/Global/BackButton/BackButton';
+import { Image, TextInput } from 'react-native';
+import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList, OutletData } from '../../Navigation/navigation';
 import { FontType } from '../../Components/Constants/FontType';
 import Container from '../../Components/Layout/Container';
 import MainContainer from '../../Components/Layout/MainContainer';
-import { useState } from 'react';
-import { Image } from 'react-native';
-import { TextInput } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
-import { useRoute, RouteProp } from '@react-navigation/native';
 import OrangeButton from '../../Components/Buttons/OrangeButton';
+import {
+  serviceCategories,
+  getSubCategoriesByCategoryId,
+  SubCategoryItem,
+} from '../../utils/constants/serviceCategoryData';
 
-const outletsData = [
-  {
-    id: 1,
-    name: 'Tony&Guy',
-    icon: require('../../assets/images/OutletHairTreatment/OutletLogo/outlet.png'),
-  },
-  {
-    id: 2,
-    name: 'Tony&Guy',
-    icon: require('../../assets/images/OutletHairTreatment/OutletLogo/outlet2.png'),
-  },
-  {
-    id: 3,
-    name: 'Tony&Guy',
-    icon: require('../../assets/images/OutletHairTreatment/OutletLogo/outlet3.png'),
-  },
-  {
-    id: 4,
-    name: 'Tony&Guy',
-    icon: require('../../assets/images/OutletHairTreatment/OutletLogo/outlet3.png'),
-  },
-  // { id: 5, name: 'Tony&Guy', icon: require('../assets/images/outlet5.png') },
-];
-
-const subCategoryData = [
-  {
-    id: 6,
-    name: 'Carpenter',
-    icon: require('../../assets/images/Handyman/Carpenter.png'),
-  },
-  {
-    id: 7,
-    name: 'Plumber',
-    icon: require('../../assets/images/Handyman/Plumber.png'),
-  },
-  {
-    id: 8,
-    name: 'Electrician',
-    icon: require('../../assets/images/Handyman/Electrician.png'),
-  },
-  {
-    id: 9,
-    name: 'Ac-Repair',
-    icon: require('../../assets/images/Handyman/AC-Repair.png'),
-  },
-  {
-    id: 10,
-    name: 'Painter',
-    icon: require('../../assets/images/Handyman/Painter.png'),
-  },
+// Mock data - replace with your actual data fetching
+const ALL_OUTLETS: OutletData[] = [
+  // ... your mock data here
 ];
 
 export default function Filters() {
-  const [isSelected, setIsSelected] = useState<number | null>(null);
-  const [location, setLocation] = useState<string>('Enter Location ...');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<string | null>(null);
+  const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
+  const [location, setLocation] = useState<string>('');
+  const [selectedBooking, setSelectedBooking] = useState<string | null>('In Outlet');
+  const [showOptions, setShowOptions] = useState(false);
+  const [openNow, setOpenNow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [filteredResults, setFilteredResults] = useState<OutletData[]>([]);
+  
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Filters'>>();
-  const [selectedBooking, setSelectedBooking] = useState<string | null>(
-    'In Outlet',
-  );
-  const [showOptions, setShowOptions] = useState(false);
+  
   const bookingOptions = ['Online', 'In Outlet', 'In-Home'];
 
-  const handleSelectOption = (options: any, showOptions: boolean) => {
-    setSelectedBooking(options);
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (selectedCategoryId) {
+      const subs = getSubCategoriesByCategoryId(selectedCategoryId);
+      setSubCategories(subs);
+      // Reset selected subcategory when category changes
+      setSelectedSubCategoryId(null);
+    } else {
+      setSubCategories([]);
+    }
+  }, [selectedCategoryId]);
+
+  // Apply filters function
+  const applyFilters = async () => {
+    setLoading(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      let results = [...ALL_OUTLETS];
+      
+      // Get selected category and subcategory names
+      const selectedCategory = serviceCategories.find(cat => cat.id === selectedCategoryId);
+      const selectedSubCategory = subCategories.find(sub => sub.id === selectedSubCategoryId);
+      
+      // Filter by service category
+      if (selectedCategory) {
+        results = results.filter(outlet =>
+          outlet.outletName.toLowerCase().includes(selectedCategory.name.toLowerCase()) ||
+          outlet.services.some(service =>
+            service.serviceName.toLowerCase().includes(selectedCategory.name.toLowerCase())
+          )
+        );
+      }
+      
+      // Filter by sub category
+      if (selectedSubCategory) {
+        results = results.filter(outlet =>
+          outlet.services.some(service =>
+            service.serviceName.toLowerCase().includes(selectedSubCategory.name.toLowerCase())
+          )
+        );
+      }
+      
+      // Filter by booking type
+      if (selectedBooking && selectedBooking !== 'All') {
+        results = results.filter(outlet =>
+          outlet.services.some(service =>
+            service.serviceDetails.serviceBookingType === selectedBooking
+          )
+        );
+      }
+      
+      // Filter by open now
+      if (openNow) {
+        results = results.filter(() => {
+          const hour = new Date().getHours();
+          return hour >= 9 && hour <= 21;
+        });
+      }
+      
+      // Filter by location
+      if (location.trim()) {
+        results = results.filter(outlet =>
+          outlet.outletName.toLowerCase().includes(location.toLowerCase())
+        );
+      }
+      
+      setFilteredResults(results);
+      
+      if (results.length > 0) {
+        navigation.navigate('MyTabs', {
+          outletId: 'filtered-results',
+          // @ts-ignore
+          filteredOutlets: results
+        });
+      } else {
+        Alert.alert('No Results', 'No services found matching your filters. Please try different criteria.');
+      }
+      
+    } catch (error) {
+      console.error('Filter error:', error);
+      Alert.alert('Error', 'Failed to apply filters. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedCategoryId(null);
+    setSelectedSubCategoryId(null);
+    setSelectedBooking('In Outlet');
+    setLocation('');
+    setOpenNow(false);
+    Alert.alert('Filters Cleared', 'All filters have been reset.');
+  };
+
+  const handleSelectOption = (option: string) => {
+    setSelectedBooking(option);
     setShowOptions(false);
   };
 
-  const navigate = () => {
-    (navigation as any).navigate('MyTabs', {
-      screen: 'Services',
-      params: {
-        outletData: {
-          id: 'filter',
-          outletName: 'Available Services',
-          outletIcon: require('../../assets/images/OutletHairTreatment/OutletPics/pic1.png'),
-          rating: 4.0,
-          services: [
-            {
-              id: 's1',
-              serviceName: 'Filtered Services',
-              price: 0,
-              serviceImage: require('../../assets/images/OutletHairTreatment/OutletPics/pic2.png'),
-            },
-          ],
-        },
-      },
-    });
+  const handleSelectCategory = (categoryId: string) => {
+    setSelectedCategoryId(prevId => (prevId === categoryId ? null : categoryId));
   };
 
-  const Divider = () => {
-    return <View style={styles.topDivider} />;
+  const handleSelectSubCategory = (subCategoryId: string) => {
+    setSelectedSubCategoryId(prevId => (prevId === subCategoryId ? null : subCategoryId));
   };
 
-  const setUserLocation = (text: string) => {
-    setLocation(text);
-  };
-
-  const serviceCategory = [
-    { id: 1, name: 'Estheticians' },
-    { id: 2, name: 'Music Studio' },
-    { id: 3, name: 'Handyman' },
-    { id: 4, name: 'Barbers' },
-    { id: 5, name: 'Yoga' },
-  ];
-
-  const handleSelect = (id: number) => {
-    setIsSelected(prevId => (prevId === id ? null : id));
-  };
-  const renderItem = ({
-    item,
-  }: {
-    item: { id: number; name: string; icon?: any };
-  }) => {
-    const isActive = item.id === isSelected;
+  const renderCategoryItem = ({ item }: { item: typeof serviceCategories[0] }) => {
+    const isActive = item.id === selectedCategoryId;
+    
     return (
       <TouchableOpacity
         style={[
@@ -141,87 +164,92 @@ export default function Filters() {
           isActive && styles.selectedCategoryColor,
         ]}
         activeOpacity={0.6}
-        onPress={() => {
-          handleSelect(item.id);
-        }}
+        onPress={() => handleSelectCategory(item.id)}
       >
-        {item.icon && <Image source={item.icon} style={styles.icon} />}
-        <Text style={styles.name}>{item.name}</Text>
+        <Text style={[styles.name, isActive && styles.selectedText]}>
+          {item.name}
+        </Text>
       </TouchableOpacity>
     );
   };
 
-  const renderOutlets = ({
-    item,
-  }: {
-    item: { id: number; name: string; icon?: any };
-  }) => {
+  const renderSubCategoryItem = ({ item }: { item: SubCategoryItem }) => {
+    const isActive = item.id === selectedSubCategoryId;
+    
     return (
-      <TouchableOpacity>
-        <Image
-          source={item.icon}
-          style={styles.outletsImage}
-          resizeMode="center"
-        />
+      <TouchableOpacity
+        style={[
+          styles.categoryContainer,
+          isActive && styles.selectedCategoryColor,
+        ]}
+        activeOpacity={0.6}
+        onPress={() => handleSelectSubCategory(item.id)}
+      >
+        {item.icon && <Image source={item.icon} style={styles.icon} />}
+        <Text style={[styles.name, isActive && styles.selectedText]}>
+          {item.name}
+        </Text>
       </TouchableOpacity>
     );
   };
+
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
       <Container style={styles.container}>
+        {/* Header */}
         <View style={styles.header}>
-        <TouchableOpacity
-      onPress={() => navigation.goBack()}
-      style={[styles.button]}
-      activeOpacity={0.7}
-    >
-      <Image
-        source={require('../../assets/images/Others/backButton.png')} // <-- use your own icon here
-        style={styles.backButtonIcon}
-        resizeMode='contain'
-      />
-    </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Filters</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.button}>
+            <Image
+              source={require('../../assets/images/Others/backButton.png')}
+              style={styles.backButtonIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Filters</Text>
+          </View>
+          <TouchableOpacity onPress={clearAllFilters} style={styles.clearButton}>
+            <Text style={styles.clearText}>Clear All</Text>
+          </TouchableOpacity>
         </View>
-        </View>
+
         <MainContainer style={styles.mainContainer}>
-          <View
-            style={[
-              styles.portionContainer,
-              { marginTop: 10, marginBottom: 5 },
-            ]}
-          >
-            <Text style={[styles.boldText]}>Service Category</Text>
+          {/* Service Category */}
+          <View style={styles.portionContainer}>
+            <Text style={styles.boldText}>Service Category</Text>
             <FlatList
-              data={serviceCategory}
+              data={serviceCategories}
               horizontal={true}
-              renderItem={renderItem}
-              keyExtractor={item => item.id.toString()}
+              renderItem={renderCategoryItem}
+              keyExtractor={item => item.id}
               contentContainerStyle={styles.flatListContent}
               showsHorizontalScrollIndicator={false}
             />
           </View>
-          <Divider />
-          <View style={[styles.portionContainer, { marginBottom: 6 }]}>
-            <Text style={[styles.boldText, { marginBottom: 20 }]}>
-              Sub Category
-            </Text>
-            <FlatList
-              data={subCategoryData}
-              horizontal={true}
-              renderItem={renderItem}
-              keyExtractor={item => item.id.toString()}
-              contentContainerStyle={styles.flatListContent}
-              showsHorizontalScrollIndicator={false}
-            />
-          </View>
+
           <Divider />
 
+          {/* Sub Category - Only show if a category is selected */}
+          {selectedCategoryId && subCategories.length > 0 && (
+            <>
+              <View style={styles.portionContainer}>
+                <Text style={[styles.boldText, { marginBottom: 20 }]}>Sub Category</Text>
+                <FlatList
+                  data={subCategories}
+                  horizontal={true}
+                  renderItem={renderSubCategoryItem}
+                  keyExtractor={item => item.id}
+                  contentContainerStyle={styles.flatListContent}
+                  showsHorizontalScrollIndicator={false}
+                />
+              </View>
+              <Divider />
+            </>
+          )}
+
+          {/* Booking Type */}
           <View style={styles.portionContainer}>
-            <Text
-              style={[styles.boldText, { marginTop: 10, marginBottom: 15 }]}
-            >
+            <Text style={[styles.boldText, { marginTop: 10, marginBottom: 15 }]}>
               Booking Type
             </Text>
             <TouchableOpacity
@@ -239,18 +267,21 @@ export default function Filters() {
 
             {showOptions && (
               <View style={styles.modalView}>
-                {bookingOptions.map((options, index) => (
+                {bookingOptions.map((option, index) => (
                   <TouchableOpacity
                     key={index}
                     style={[
                       styles.optionButton,
-                      index === bookingOptions.length - 1 && {
-                        borderBottomWidth: 0,
-                      },
+                      index === bookingOptions.length - 1 && { borderBottomWidth: 0 },
                     ]}
-                    onPress={() => handleSelectOption(options, showOptions)}
+                    onPress={() => handleSelectOption(option)}
                   >
-                    <Text style={styles.optionText}>{options}</Text>
+                    <Text style={[
+                      styles.optionText,
+                      selectedBooking === option && styles.selectedOptionText
+                    ]}>
+                      {option}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -259,30 +290,34 @@ export default function Filters() {
 
           <Divider />
 
+          {/* Open Now Toggle */}
           <View style={styles.portionContainer}>
-            <Text style={[styles.boldText, { marginTop: 10, marginBottom: 0 }]}>
-              Open Now
-            </Text>
-            <FlatList
-              data={outletsData}
-              keyExtractor={item => item.id.toString()}
-              renderItem={renderOutlets}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.flatListOutlets}
-            />
-            <Divider />
-            <Text
-              style={[styles.boldText, { marginTop: 20, marginBottom: 30 }]}
-            >
+            <View style={styles.openNowContainer}>
+              <Text style={styles.boldText}>Open Now</Text>
+              <TouchableOpacity
+                style={[styles.toggleButton, openNow && styles.toggleButtonActive]}
+                onPress={() => setOpenNow(!openNow)}
+              >
+                <View style={[styles.toggleCircle, openNow && styles.toggleCircleActive]} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Divider />
+
+          {/* Location */}
+          <View style={styles.portionContainer}>
+            <Text style={[styles.boldText, { marginTop: 20, marginBottom: 30 }]}>
               Location
             </Text>
             <View style={styles.row}>
               <TextInput
                 style={styles.locationButton}
                 placeholder="Enter Location ..."
-                onChangeText={setUserLocation}
-              ></TextInput>
+                value={location}
+                onChangeText={setLocation}
+                placeholderTextColor="#999"
+              />
               <TouchableOpacity style={styles.distanceButton}>
                 <Text style={styles.distanceButtonText}>10 Miles</Text>
               </TouchableOpacity>
@@ -291,51 +326,53 @@ export default function Filters() {
               *Default 10 miles location search
             </Text>
           </View>
-          {/* <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableOpacity style={styles.filterButton} onPress={navigate}>
-              <Text style={styles.buttonText}>Filter</Text>
-            </TouchableOpacity>
-          </View> */}
 
-          <OrangeButton 
-          title='Filter' 
-          onPress={() => navigation.navigate('AppointmentConfirmed')} 
-          textStyle={{ fontSize: 20, fontWeight: '700' }} 
+          {/* Filter Button */}
+          <OrangeButton
+            title={loading ? "Applying Filters..." : "Apply Filters"}
+            onPress={applyFilters}
+            textStyle={{ fontSize: 20, fontWeight: '700' }}
           />
+          
+          {filteredResults.length > 0 && (
+            <Text style={styles.resultsText}>
+              Found {filteredResults.length} outlets
+            </Text>
+          )}
         </MainContainer>
       </Container>
     </ScrollView>
   );
 }
+
+const Divider = () => <View style={styles.topDivider} />;
+
+// Styles remain the same as before...
+
+// Styles remain the same as before...
+
 const styles = StyleSheet.create({
+  // ... (keep your existing styles)
   scrollView: {
     backgroundColor: '#FFFFFF',
     flex: 1,
   },
   container: {
-    // backgroundColor: '#cdcdcd',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  header:{
-    flexDirection : 'row',
-    width : '100%',
-    paddingHorizontal : 20,
-    paddingTop : 50,
-    // backgroundColor : 'yellow',
-    justifyContent : 'space-between',
-    alignItems : 'center',
-
-  },
-  backButton:{
-
+  header: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   titleContainer: {
-    flex : 1,
-    alignItems : 'center',
-marginRight : 0,
-// backgroundColor : 'cyan'
+    flex: 1,
+    alignItems: 'center',
   },
   title: {
     color: '#F27122',
@@ -343,26 +380,25 @@ marginRight : 0,
     fontFamily: 'Montserrat-Bold',
     fontWeight: '600',
   },
+  clearButton: {
+    padding: 8,
+  },
+  clearText: {
+    color: '#F27122',
+    fontSize: FontType.medium,
+    fontWeight: '500',
+  },
   mainContainer: {
-    // backgroundColor: 'red',
-    // marginHorizontal: 20,
-    // marginTop: 150,
-    // marginBottom: 50,
-    // justifyContent: 'flex-start',
-    // flexDirection: 'column',
-    // alignItems: 'center',
-    width: '100%',              // Allow it to fill the screen
-  paddingHorizontal: 20,      // Use padding instead of margin for better touch handling
-  marginTop: 20,              // Small gap after the header
-  flexDirection: 'column',
+    width: '100%',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    flexDirection: 'column',
+    marginBottom: 40,
   },
   portionContainer: {
-    width: '100%', // stretch horizontally
+    width: '100%',
     paddingVertical: 15,
-    // backgroundColor: 'pink',
-    // borderRadius : 10,
   },
-
   boldText: {
     fontSize: FontType.xlarge,
     fontFamily: 'Montserrat-Regular',
@@ -371,7 +407,6 @@ marginRight : 0,
     marginLeft: 15,
     marginBottom: 10,
     fontWeight: '600',
-    // alignSelf: 'flex-start',
   },
   categoryContainer: {
     paddingHorizontal: 10,
@@ -384,20 +419,18 @@ marginRight : 0,
     marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    // backgroundColor : 'red',
   },
   flatListContent: {
-    paddingHorizontal: 4, // space at list start/end
-    // backgroundColor : 'red',
+    paddingHorizontal: 4,
     marginTop: 20,
-  },
-  flatListOutlets: {
-    marginTop: 30,
-    gap: 20,
   },
   name: {
     fontSize: FontType.medium,
     color: '#263238',
+  },
+  selectedText: {
+    color: '#F27122',
+    fontWeight: '600',
   },
   icon: {
     width: 20,
@@ -405,8 +438,8 @@ marginRight : 0,
     marginRight: 10,
   },
   selectedCategoryColor: {
-    // backgroundColor: '#F2712220',
     borderColor: '#F27122',
+    backgroundColor: '#F2712210',
   },
   topDivider: {
     height: 1,
@@ -425,9 +458,7 @@ marginRight : 0,
     width: '95%',
     marginHorizontal: 10,
     borderRadius: 8,
-    borderColor: '#a0a0a0',
-    // backgroundColor : '#cdcdcd',
-
+    borderColor: '#F27122',
     borderWidth: 1.2,
     marginVertical: 30,
     marginLeft: 10,
@@ -441,17 +472,39 @@ marginRight : 0,
     width: 20,
     height: 20,
   },
-
-  outletsImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 10,
-    marginBottom: 20,
+  modalView: {
+    backgroundColor: '#e7e7e7',
+    alignItems: 'center',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    marginTop: -30,
+    width: '95%',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  optionButton: {
+    paddingVertical: 13,
+    alignItems: 'center',
+    width: '100%',
+    borderBottomColor: '#42526E20',
+    borderBottomWidth: 1,
+  },
+  optionText: {
+    fontSize: FontType.medium,
+    color: '#42526E',
+    fontFamily: 'Montserrat-Regular',
+    fontWeight: '500',
+  },
+  selectedOptionText: {
+    color: '#F27122',
+    fontWeight: 'bold',
   },
   row: {
     flexDirection: 'row',
     width: '100%',
-    // backgroundColor: 'blue',
     paddingHorizontal: 30,
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -464,13 +517,8 @@ marginRight : 0,
     paddingVertical: 11,
     paddingLeft: 20,
     marginLeft: -17,
-    width: '80%',
-  },
-  locationButtonText: {
-    fontSize: FontType.medium,
-    color: '#797979',
-    fontFamily: 'Montserrat-Regular',
-    fontWeight: '600',
+    width: '70%',
+    color: '#000',
   },
   distanceButton: {
     borderColor: '#F27122',
@@ -480,12 +528,10 @@ marginRight : 0,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
-    marginRight: -20,
   },
   distanceButtonText: {
     fontSize: FontType.small,
     color: '#000000',
-    fontFamily: 'Montserrat-Regular',
     fontWeight: '500',
   },
   defaultText: {
@@ -493,69 +539,47 @@ marginRight : 0,
     fontWeight: '400',
     marginLeft: 10,
     marginVertical: 15,
+    color: '#666',
   },
-  filterButton: {
-    backgroundColor: '#F27122',
-    borderRadius: 10,
-    paddingVertical: 17,
-    marginTop: 10,
-    width: '90%',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: FontType.large,
-    fontWeight: 'bold',
-    // backgroundColor : 'red',
-    width: '100%',
-    textAlign: 'center',
-  },
-  modalView: {
-    backgroundColor: '#e1e1e1',
-    alignItems: 'center',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    // paddingHorizontal : 140,
-    paddingVertical: 10,
-    // marginLeft : 10,
-    marginTop: -30,
-    width: '100%',
-
-    borderRadius: -20,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 20,
-    borderBottomLeftRadius: 20,
-  },
-  optionButton: {
-    paddingVertical: 13,
-    alignItems: 'center',
-    width: '100%',
-    alignSelf: 'center',
-    borderBottomColor: '#42526E20',
-
-    borderBottomWidth: 1,
-    borderColor: '#42526E20',
-    // backgroundColor: '#ffff'
-  },
-  optionText: {
-    fontSize: FontType.medium,
-    color: '#42526E',
-    fontFamily: 'Montserrat-Regular',
-    fontWeight: '500',
-  },
-  button:{
+  button: {
     padding: 10,
     backgroundColor: 'transparent',
-    // backgroundColor : 'red',
   },
   backButtonIcon: {
     width: 28,
     height: 28,
-    tintColor: '#F27122',  // Optional: color the icon
+    tintColor: '#F27122',
   },
-
+  openNowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  toggleButton: {
+    width: 50,
+    height: 28,
+    borderRadius: 15,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  toggleButtonActive: {
+    backgroundColor: '#F27122',
+  },
+  toggleCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#fff',
+  },
+  toggleCircleActive: {
+    transform: [{ translateX: 22 }],
+  },
+  resultsText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: FontType.medium,
+    color: '#666',
+  },
 });

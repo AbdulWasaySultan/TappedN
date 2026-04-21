@@ -17,83 +17,102 @@ import { Dimensions } from 'react-native';
 import ChatList from '../../../../Components/Chat/ChatList';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/store';
-import { sendMessage,listenToMessages } from '../../../../Firebase/messageUtils';
-import { onSendError } from '@react-native-firebase/messaging';
+import { sendMessage, listenToMessages } from '../../../../Firebase/messageUtils';
 import { getSafeImageSource } from '../../../../utils/imageSource';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from '../../../../Navigation/navigation';
 
-const {width,height} = Dimensions.get('window')
+const {width, height} = Dimensions.get('window')
 const isSmallScreen = height < 800
-const isSmallScr = width < 400
 
-export default function MessagingScreen({ route,navigation }: any) {
+// Define the message type
+type Message = {
+  id: string;
+  text: string;
+  senderId: string;
+  timestamp: any;
+  // add other properties as needed
+};
 
-  const {provider} = route.params
-  const currentUser = useSelector((state : RootState) => state.user)
+type MessagingScreenRouteProp = RouteProp<RootStackParamList, 'MessagingScreen'>;
 
+export default function MessagingScreen({ navigation }: any) {
+  const route = useRoute<MessagingScreenRouteProp>();
+  const { chatId, serviceProvider } = route.params || {};
+  
+  const currentUser = useSelector((state: RootState) => state.user)
   const [messageText, setMessageText] = useState('')
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<Message[]>([]) // ✅ Fixed: Added proper type
 
-    const chatId = [currentUser.uid, provider.uid].sort().join('_')
+  // Validate required params
+  useEffect(() => {
+    if (!chatId || !serviceProvider) {
+      Alert.alert('Error', 'Invalid chat data');
+      navigation.goBack();
+    }
+  }, []);
 
- useEffect(() => {
-    // Start listening
-    //callback
-    const unsubscribe = listenToMessages(chatId, (newMessages) => {
+  useEffect(() => {
+    if (!chatId) return;
+    
+    // Start listening to messages
+    const unsubscribe = listenToMessages(chatId, (newMessages: Message[]) => { // ✅ Added type
       setMessages(newMessages)
     });
-    return () => unsubscribe(); // Cleanup on unmount
+    
+    return () => unsubscribe();
   }, [chatId]);
 
+  const handleSendMessage = async () => {
+    if (messageText.trim().length === 0) return;
 
-      const handleSendMessage = async () => {
-        if (messageText.trim().length === 0) return;
-    
-        try {
-          await sendMessage(
-            chatId,
-            currentUser.uid,
-            // serviceProvider.uid,
-            messageText
-          );
-          setMessageText('');
-        } catch (error) {
-          console.error('Error sending message:', error);
-          Alert.alert('Error', 'Failed to send message');
-        }
-      };
+    try {
+      // ✅ Fixed: sendMessage expects 3 arguments, not 4
+      await sendMessage(
+        chatId,
+        currentUser.uid,
+        serviceProvider?.uid,
+        messageText  // Only 3 arguments: chatId, senderId, messageText
+      );
+      setMessageText('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      Alert.alert('Error', 'Failed to send message');
+    }
+  };
+
+  // Show loading if data is missing
+  if (!serviceProvider) {
+    return (
+      <Container style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </Container>
+    );
+  }
 
   return (
     <Container style={{ justifyContent: 'flex-start' }}>
       <BackButton />
       <View style={styles.titleContainer}>
         <Text style={styles.userName}>
-          {provider?.name}
+          {serviceProvider?.name || 'User'}
         </Text>
+        {serviceProvider?.outletName && (
+          <Text style={styles.outletName}>
+            {serviceProvider.outletName}
+          </Text>
+        )}
       </View>
 
-      {/* <Text style={styles.message}>{providerData.text || 'Provider'}</Text> */}
-
-      {/* {providerData?.outletName ? (
-  <Text style={styles.outletName}>
-    {providerData.outletName}
-  </Text>
-) : (
-  <Text style={styles.outletName}>
-    TappedN User
-  </Text>
-)} */}
-
       <View style={styles.container}>
-        {/* Messages List: UI structure from first, logic (inverted/renderMessage) from second */}
-<ChatList
-messages={messages}
-currentUser={currentUser}
-provider={provider}
+        {/* Messages List */}
+        <ChatList
+          messages={messages}
+          currentUser={currentUser}
+          provider={serviceProvider}
+        />
 
-
-/>
-
-        {/* Input Area: UI structure from first, logic from second */}
+        {/* Input Area */}
         <View style={styles.messageContainer}>
           <View style={styles.rowContainer}>
             <View style={styles.inputPill}>
@@ -105,36 +124,42 @@ provider={provider}
                 onChangeText={setMessageText}    
                 returnKeyType="send"
                 blurOnSubmit={false}
-                // onSubmitEditing={handleSendMessage}
-            
-                />
+                onSubmitEditing={handleSendMessage}
+              />
 
               <View style={styles.iconGroup}>
-              <TouchableOpacity style={{marginHorizontal : 4}}>
-                <Image
-                  source={getSafeImageSource(require('../../../../assets/images/Others/camera.png'), 
-                    require('../../../../assets/images/Others/camera.png'))}
-                  style={styles.cameraIcon}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={{marginHorizontal : 4}}>
-                <Image
-                  source={getSafeImageSource(require('../../../../assets/images/Others/emoji.png'), 
-                      require('../../../../assets/images/Others/emoji.png'))}
-                  style={styles.emojiIcon}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
+                <TouchableOpacity style={{marginHorizontal: 4}}>
+                  <Image
+                    source={getSafeImageSource(
+                      require('../../../../assets/images/Others/camera.png'), 
+                      require('../../../../assets/images/Others/camera.png')
+                    )}
+                    style={styles.cameraIcon}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={{marginHorizontal: 4}}>
+                  <Image
+                    source={getSafeImageSource(
+                      require('../../../../assets/images/Others/emoji.png'), 
+                      require('../../../../assets/images/Others/emoji.png')
+                    )}
+                    style={styles.emojiIcon}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
               </View>
             </View>
+            
             <TouchableOpacity
               onPress={handleSendMessage}
               style={styles.sendButtonContainer}
             >
               <Image
-                source={getSafeImageSource(require('../../../../assets/images/Others/send.png'), 
-                  require('../../../../assets/images/Others/send.png'))}
+                source={getSafeImageSource(
+                  require('../../../../assets/images/Others/send.png'), 
+                  require('../../../../assets/images/Others/send.png')
+                )}
                 style={styles.sendButton}
                 resizeMode="cover"
               />
@@ -145,122 +170,95 @@ provider={provider}
     </Container>
   );
 }
-// Styles remain the same...
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'flex-start',
     width: '100%',
-    // backgroundColor: 'yellow',
   },
   titleContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 70,
     width: '100%',
-    // backgroundColor : 'yellow',
-    flexDirection: 'row',
+    flexDirection: 'column',
   },
-
-  // title: {
-  //   fontSize: FontType.titleBold2,
-  //   fontWeight: '900',
-  //   color: '#F27122',
-  //   textAlign: 'center',
-  // },
-  // message: {
-  //   color: '#000',
-  //   fontSize: FontType.medium,
-  //   fontWeight: '700',
-  // },
-
-     userName: {
-        fontSize: FontType.xxxlarge,
-        color: '#263238',
-        fontWeight: '600',
-        marginTop: 7,
-      },
-
-   messageContainer: {
-        width: '100%',
-        // backgroundColor: '#F27122',
-      backgroundColor: '#FFFFFF',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        height: isSmallScreen? 100 : 140,
-        // paddingBottom: 30,
-        // paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#EEE',
-        // paddingHorizontal: 10,
-        // borderRadius : 20,
-      },
-      rowContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent : 'space-evenly',
-        // backgroundColor: 'blue',
-        paddingHorizontal: 15,
-        paddingRight : 70,
-        width: '100%',
-      },
-      inputPill: {
-        flex: 0,
-        borderRadius : 8,
-        paddingHorizontal : 6,
-        alignItems : 'center',
-        minHeight : 50,
-         backgroundColor: '#F2F2F2',
-        flexDirection: 'row',
-        marginRight : 10
-      },
-      messageTextInput: {
-        flex: 1,
-        height: 50,
-        // backgroundColor: 'transparent',
-        // backgroundColor : '#cdcdcd',
-        color : '#42526E',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        // marginRight: 10,
-        maxHeight : 140,
-        fontSize : FontType.regular
-      },
-      iconGroup:{
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginLeft: 5,
-        
-      },
-      sendButtonContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F27122',
-        width: 46,
-        height: 46,
-        borderRadius: 7,
-        marginBottom: 2,
-        marginHorizontal : 6
-      },
-      sendButton: {
-        width: 28,
-        height: 28,
-      },
-
+  userName: {
+    fontSize: FontType.xxxlarge,
+    color: '#263238',
+    fontWeight: '600',
+    marginTop: 7,
+  },
+  outletName: {
+    fontSize: FontType.medium,
+    color: '#F27122',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  messageContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    height: isSmallScreen ? 100 : 140,
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 15,
+    paddingRight: 70,
+    width: '100%',
+  },
+  inputPill: {
+    flex: 1,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    minHeight: 50,
+    backgroundColor: '#F2F2F2',
+    flexDirection: 'row',
+    marginRight: 10,
+  },
+  messageTextInput: {
+    flex: 1,
+    height: 50,
+    color: '#42526E',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    maxHeight: 140,
+    fontSize: FontType.regular,
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 5,
+  },
+  sendButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F27122',
+    width: 46,
+    height: 46,
+    borderRadius: 7,
+    marginBottom: 2,
+    marginHorizontal: 6,
+  },
+  sendButton: {
+    width: 28,
+    height: 28,
+  },
   cameraIcon: {
     width: 26,
     height: 22,
     alignSelf: 'center',
-    // marginLeft: 10,
   },
   emojiIcon: {
     width: 26,
     height: 22,
     alignSelf: 'center',
-    // marginLeft: 10,
   },
-
-
-
 });

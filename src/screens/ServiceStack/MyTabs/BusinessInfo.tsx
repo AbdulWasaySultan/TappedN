@@ -22,7 +22,7 @@ import { createOrGetChat } from '../../../Firebase/chatUtils';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store/store';
 import { useNavigation, NavigationProp, useRoute, RouteProp } from '@react-navigation/native';
-import { getSafeImageSource } from '../../../utils/imageSource';
+import SafeImage from '../../../Components/Global/SafeImage';
 
 type BusinessInfoProps = {
   outletId: string;
@@ -125,14 +125,13 @@ export default function BusinessInfo({outletId} : BusinessInfoProps) {
       return (
         <>
           {validApiPhotos.map((photo, index) => (
-            <Image
+            <SafeImage
               key={photo.id || index}
-              source={getSafeImageSource(
-                photo.servicePicture,
-                require('../../../assets/images/OutletWindowCleaning/windowService.png'),
-              )}
+              uri={photo.servicePicture}
+              fallbackSource={require('../../../assets/images/OutletWindowCleaning/windowService.png')}
               style={styles.picture}
               resizeMode="cover"
+              deferUntilInteractions
             />
           ))}
         </>

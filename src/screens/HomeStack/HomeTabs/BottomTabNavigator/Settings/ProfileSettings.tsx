@@ -33,14 +33,15 @@ export default function ProfileSettings() {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state : RootState) => state.user);
 
+  const profileBox = '../../../../../assets/images/Others/profile.png'
 
   useEffect(() => {
-    // Check if user exists and has values before setting
     if (user.isLoggedIn) {
       setFullName(user.name || '');
       setEmail(user.email || '');
       setContactNo(user.contactNo || '');
       setAddress(user.address || '');
+      // ONLY store the string URI
       setSelectedImage(user.profileImage || null);
     }
   }, [user]); // Re-runs whenever ANY part of the user object in Redux changes
@@ -64,6 +65,23 @@ export default function ProfileSettings() {
     const cleanedText = text.replace(/[^\d+]/g, '');
     setContactNo(cleanedText);
   };
+
+  const getImageSource = () => {
+    if (selectedImage && typeof selectedImage === 'string') {
+      if (selectedImage.startsWith('http') || selectedImage.startsWith('file://')) {
+        return { uri: selectedImage };
+    }
+  }
+    return require('../../../../../assets/images/Others/profile.png')
+  };
+
+  if (!user.uid) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   const showEmailIcon = (iconStyle: ImageStyle) => {
     return (
@@ -102,7 +120,7 @@ const handleUpdate = async () => {
       email: email,
       contactNo: contactNo,
       address: address,
-      profileImage: selectedImage || '',
+      profileImage: selectedImage || undefined,
     };
 
     // 1. Update Firestore (always works)
@@ -189,6 +207,7 @@ const handleUpdate = async () => {
     });
   };
   return (
+
     <ImageBackground
       source={require('../../../../../assets/images/Others/bg-image.png')}
       style={{ width: '100%', flex: 1 }}
@@ -201,11 +220,7 @@ const handleUpdate = async () => {
 
             <View style={styles.profilePicContainer}>
               <Image
-                source={
-                  selectedImage
-                    ? { uri: selectedImage }
-                    : require('../../../../../assets/images/Others/profile.png')
-                }
+                source={getImageSource()}
                 style={styles.profilePic}
                 resizeMode="cover"
               />

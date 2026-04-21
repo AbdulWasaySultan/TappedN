@@ -19,7 +19,7 @@ import OrangeButton from '../../../Components/Buttons/OrangeButton';
 import { OutletData, OutletRating, allReviews } from '../../../navigation/navigation';
 // import { Reviews } from '../../navigation/navigation';
 import { useOutletContext } from '../../../Context/API/Outlet/OutletContext';
-import { getSafeImageSource } from '../../../utils/imageSource';
+import SafeImage from '../../../Components/Global/SafeImage';
 
 function formattedTime(dateString: string) {
   const now = new Date();
@@ -118,17 +118,12 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
     return (
       <View style={[styles.reviewItemWrapper]}>
         <View style={styles.profileImageContainer}>
-          <Image
-            source={getSafeImageSource(
-              item.profileImage,
-              require('../../../assets/images/Review/profileImage.png'),
-            )}
+          <SafeImage
+            uri={item.profileImage}
+            fallbackSource={require('../../../assets/images/Review/profileImage.png')}
             resizeMode="cover"
-            //   item.profileImage
-            // ? {uri : item.profileImage}
-            // :
-            // require('../../assets/images/Review/profileImage.png')
             style={styles.profileImage}
+            deferUntilInteractions
           />
         </View>
 

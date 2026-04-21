@@ -9,7 +9,7 @@ import {
 } from '../../../Navigation/navigation';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useOutletContext } from '../../../Context/API/Outlet/OutletContext'
-import { getSafeImageSource } from '../../../utils/imageSource';
+import SafeImage from '../../../Components/Global/SafeImage';
 // import {OutletData, ServiceReviews, ServicesData, BusinessDetails } from '../../navigation/navigation'; // **CHANGE 1: Import types**
 // import { id } from 'date-fns/locale';
 
@@ -154,14 +154,11 @@ const RenderServices = ({ outletId, serviceId }: RenderServicesProps) => {
         })
       }
     >
-     <Image
-        source={
-          getSafeImageSource(
-            serviceData.serviceImage,
-            renderImages(serviceData.serviceName),
-          )
-        }
+     <SafeImage
+        uri={serviceData.serviceImage}
+        fallbackSource={renderImages(serviceData.serviceName)}
         style={styles.serviceImage}
+        deferUntilInteractions
       />
       <View style={styles.serviceDetailsColumn}>
         <View style={styles.serviceDetailsRow}>

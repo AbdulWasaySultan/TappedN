@@ -8,7 +8,7 @@ import { FlatList } from 'react-native';
 import { useState, useEffect } from 'react';
 import { ImageSourcePropType, Image } from 'react-native';
 import axios from 'axios';
-import { getSafeImageSource } from '../../utils/imageSource';
+import SafeImage from '../../Components/Global/SafeImage';
 
 const apiUrl = `https://api.onetapdrive.com/brands`;
 
@@ -63,13 +63,12 @@ export default function ViewAll() {
     return (
       <View style={styles.itemContainer}>
         <Text style={styles.text}>{item.name}</Text>
-        <Image
-          source={getSafeImageSource(
-            item.image,
-            require('../../assets/images/Others/profile.png'),
-          )}
+        <SafeImage
+          uri={item.image}
+          fallbackSource={require('../../assets/images/Others/profile.png')}
           style={styles.image}
           resizeMode="contain"
+          deferUntilInteractions
         />
         <Text>ID: {item.id}</Text>
         <Text>Title: {item.title}</Text>

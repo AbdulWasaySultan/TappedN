@@ -21,7 +21,7 @@ import { FontType } from '../../Components/Constants/FontType';
 import { ScrollView } from 'react-native';
 import OrangeButton from '../../Components/Buttons/OrangeButton';
 import { useOutletContext } from '../../Context/API/Outlet/OutletContext';
-import { getSafeImageSource } from '../../utils/imageSource';
+import SafeImage from '../../Components/Global/SafeImage';
 
 function formattedTime(dateString: string) {
   const now = new Date();
@@ -79,14 +79,12 @@ export default function ServiceDetails() {
     return (
         <View style={styles.reviewsRowContainer}>
           <View style={styles.profileImageContainer}>
-            <Image
-              // key={item.id}
-              source={getSafeImageSource(
-                item.profileImage,
-                require('../../assets/images/Review/profileImage.png'),
-              )}
+            <SafeImage
+              uri={item.profileImage}
+              fallbackSource={require('../../assets/images/Review/profileImage.png')}
               style={styles.profileImage}
-              resizeMode='cover'
+              resizeMode="cover"
+              deferUntilInteractions
             />
           </View>
 

@@ -5,9 +5,11 @@ import { useAuth } from '../Context/Firebase/UserData/AuthContext';
 import { setUser, clearUser } from '../redux/slices/userData/userSlice';
 import { firestoreInstance } from '../Firebase/firebaseConfig';
 import { authInstance } from '../Firebase/firebaseConfig';
+import Container from '../Components/Layout/Container';
 
 import AuthStack from './AuthStack';
 import HomeStack from './HomeStack';
+import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,18 +67,27 @@ export default function RootNavigator() {
     }
   }, [user, dispatch, loading]);
 
+
+  if(loading){
+    return(
+      <Container>
+      <ActivityIndicator size={'large'} color={'#00ff00'}/>
+      </Container>
+    )
+  }
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {isLoggedIn ? (
+      {!isLoggedIn ? (
         <Stack.Screen
-          name="HomeStack"
-          component={HomeStack}
+          name="AuthStack"
+          component={AuthStack}
           options={{ animation: 'none' }}
         />
       ) : (
         <Stack.Screen
-          name="AuthStack"
-          component={AuthStack}
+          name="HomeStack"
+          component={HomeStack}
           options={{ animation: 'none' }}
         />
       )}

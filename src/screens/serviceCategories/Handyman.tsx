@@ -18,62 +18,15 @@ import { RootStackParamList } from '../../Navigation/navigation';
 import { FontType } from '../../Components/Constants/FontType';
 import { useState } from 'react';
 import BackButton from '../../Components/Global/BackButton/BackButton';
+import { handymanSubCategories } from '../../utils/constants/serviceCategoryData';
 
 const { width, height } = Dimensions.get('window');
 
 export default function Handyman() {
   const route = useRoute<RouteProp<RootStackParamList, 'Handyman'>>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
-  const allServices = [
-    {
-      id: 1,
-      name: 'Carpenter',
-      image: require('../../assets/images/Handyman/Carpenter.png'),
-    },
-    {
-      id: 2,
-      name: 'Plumber',
-      image: require('../../assets/images/Handyman/Plumber.png'),
-    },
-    {
-      id: 3,
-      name: 'Electrician',
-      image: require('../../assets/images/Handyman/Electrician.png'),
-    },
-    {
-      id: 4,
-      name: 'AC Repair',
-      image: require('../../assets/images/Handyman/AC-Repair.png'),
-    },
-    {
-      id: 5,
-      name: 'TV Repair',
-      image: require('../../assets/images/Handyman/TV-Repair.png'),
-    },
-    {
-      id: 6,
-      name: 'Painter',
-      image: require('../../assets/images/Handyman/Painter.png'),
-    },
-    {
-      id: 7,
-      name: 'Mechanic',
-      image: require('../../assets/images/Handyman/Mechanic.png'),
-    },
-    {
-      id: 8,
-      name: 'Computer',
-      image: require('../../assets/images/Handyman/Computer.png'),
-    },
-    {
-      id: 9,
-      name: 'Mobile',
-      image: require('../../assets/images/Handyman/Mobile.png'),
-    },
-  ];
   const [searchServices, setSearchServices] = useState<string>('');
-  const [filteredService, setFilteredService] = useState(allServices);
+  const [filteredService, setFilteredService] = useState(handymanSubCategories);
 
   const handleSearch = (text: string) => {
     setSearchServices(text);
@@ -81,9 +34,9 @@ export default function Handyman() {
     /*.trim() is primarily used as a JavaScript String method to remove whitespace
  characters from both ends (leading and trailing) of a string.  */
     if (text.trim() === '') {
-      setFilteredService(allServices);
+      setFilteredService(handymanSubCategories);
     } else {
-      const filtered = allServices.filter(service =>
+      const filtered = handymanSubCategories.filter(service =>
         service.name.toLowerCase().includes(text.toLowerCase()),
       );
       setFilteredService(filtered);

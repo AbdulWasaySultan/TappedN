@@ -3,7 +3,8 @@ import React from 'react';
 import { useState, useEffect, createContext, useContext } from 'react';
 import firestore from '@react-native-firebase/firestore'
 import { authInstance, firestoreInstance } from '../../../Firebase/firebaseConfig';
-import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
  export type Booking = {
   id: string;
@@ -37,20 +38,28 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 export const BookingContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(auth().currentUser
+  );
+  useEffect(() => {    
+    const unsubscribeAuth = auth().onAuthStateChanged(currentUser => {
+      setUser(currentUser);
+    });
 
+    return unsubscribeAuth;
+  }, []);
+      // 3. This useEffect now triggers whenever the 'user' state changes
   useEffect(() => {
-    console.log('[BookingContext] Mounting - current user:', authInstance.currentUser?.uid);
-    
-    // Don't fetch bookings if user is not logged in
-    if (!authInstance.currentUser) {
+        // Don't fetch bookings if user is not logged in
+    if (!user) {
       console.log('[BookingContext] User not logged in, skipping bookings fetch');
       setBookings([]);
       return;
     }
 
     console.log('[BookingContext] Setting up bookings listener...');
-    const subscriber = firestore().collection("bookings")
-      .where("userId", "==", authInstance.currentUser.uid)
+    const subscriber = firestore()
+      .collection("bookings")
+      .where("userId", "==", user.uid)
       .orderBy("createdAt", "desc")
       .onSnapshot(
         (snapshot) => {
@@ -76,11 +85,8 @@ export const BookingContextProvider = ({ children }: { children: React.ReactNode
         }
       );
 
-    return () => {
-      console.log('[BookingContext] Cleaning up listener');
-      subscriber();
-    };
-  }, []);
+    return () => {console.log('[BookingContext] Cleaning up listener'); subscriber()};
+  }, [user]);
 
   const saveBooking = async (data: Omit<Booking, "id" | "createdAt" | "userId">) => {
     try {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Text, View, Image, StyleSheet, FlatList } from 'react-native'
 import { FontType } from '../Constants/FontType';
 import { Dimensions } from 'react-native';
-import { getSafeImageSource } from '../../utils/imageSource';
+import SafeImage from '../Global/SafeImage';
 
 const {width,height} = Dimensions.get('window')
 
@@ -34,12 +34,11 @@ export default function ChatItem({children,navigation,route} :  any) {
       >
         {/* Service Provider's Profile Image (Left Side) */}
         {!route.isMine && (
-          <Image
-            source={getSafeImageSource(
-              route.provider?.profileImage,
-              require('../../assets/images/Others/YouAvatar.png'),
-            )}
+          <SafeImage
+            uri={route.provider?.profileImage}
+            fallbackSource={require('../../assets/images/Others/YouAvatar.png')}
             style={styles.profileImage}
+            deferUntilInteractions
           />
         )}
         
@@ -57,12 +56,11 @@ export default function ChatItem({children,navigation,route} :  any) {
 
         {/* Current User's Profile Image (Right Side) */}
         {route.isMine && (
-          <Image
-            source={getSafeImageSource(
-              route.currentUser?.profileImage,
-              require('../../assets/images/Others/MeAvatar.png'),
-            )}
+          <SafeImage
+            uri={route.currentUser?.profileImage}
+            fallbackSource={require('../../assets/images/Others/MeAvatar.png')}
             style={styles.profileImage}
+            deferUntilInteractions
           />
         )}
       </View>
