@@ -1,5 +1,5 @@
-import { authInstance } from '../../Firebase/firebaseConfig';
-import { clearUser } from '../slices/userData/userSlice';
+import { authInstance } from '../../services/firebase/firebaseConfig';
+import { clearUser } from '../../redux/slices/userSlice';
 // updating the state of the app when the user logs out
 
 export const handleGlobalLogout = async (dispatch: any) => {

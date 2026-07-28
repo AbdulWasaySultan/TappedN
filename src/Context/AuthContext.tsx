@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
-import { authInstance, firestoreInstance } from '../../../Firebase/firebaseConfig';
+import { authInstance, firestoreInstance } from '../services/firebase/firebaseConfig';
 import firestore from '@react-native-firebase/firestore'
 import { Alert } from 'react-native';
 

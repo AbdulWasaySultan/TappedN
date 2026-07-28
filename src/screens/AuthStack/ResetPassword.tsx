@@ -12,16 +12,16 @@ import { TextInput } from 'react-native';
 import { useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import BackButton from '../../Components/Global/BackButton/BackButton';
-import { authInstance  } from '../../Firebase/firebaseConfig';
+import { authInstance  } from '../../services/firebase/firebaseConfig';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
+import { AuthStack } from '../../Navigation/navigation';
 
 
 // import { useSelector } from 'react-redux';
 // import { selectUserEmail } from '../redux/counterSlice';
 
 export default function ResetPassword() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AuthStack>>();
 
   const [newPassword, setNewPassword] = useState('');
   const [retypePassword, setRetypeNewPassword] = useState('');
@@ -32,7 +32,7 @@ export default function ResetPassword() {
   const [retypeShowPassword, setRetypeShowPassword] = useState(false);
   // const email = useSelector(selectUserEmail)
   // const [emailInput, setEmailInput] = useState(email)
-  const route = useRoute<RouteProp<RootStackParamList, 'ResetPassword'>>()
+  const route = useRoute<RouteProp<AuthStack, 'ResetPassword'>>()
   const {email} = route.params
   
 

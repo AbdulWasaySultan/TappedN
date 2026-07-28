@@ -1,9 +1,8 @@
-import { OutletData } from '../Navigation/navigation';
-import React, { useState } from 'react';
+import { OutletData } from '../../Navigation/navigation';
 import axios from 'axios';
-import { ServiceProvider } from '../redux/slices/vendorData/serviceProviderSlice';
+import { mockOutletsData } from './mockOutletData';
 
-const baseUrl = 'https://mocki.io/v1/42fea963-1bdd-4ccf-8201-22574aedeedc';
+const baseUrl = 'https://mocki.io/v1/12611da9-69ed-4033-9ff2-239abde3d4bb';
 
 export const fetchAllOutlets = async (): 
 Promise<OutletData[]> => {
@@ -12,6 +11,8 @@ Promise<OutletData[]> => {
     return response.data.outlets;
   } catch (error) {
     throw error;
+    console.warn('API failed, using mock data:', error);
+    return mockOutletsData;
   }
 };
 
@@ -39,3 +40,5 @@ export const fetchOutletById = async (id: string): Promise<OutletData> => {
 export const fetchPreviousBooking = (id : string) => {
 
 }
+
+

@@ -8,12 +8,13 @@ import {
   ImageBackground,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
+import { AuthStack } from '../../Navigation/navigation';
 import CustomTextField from '../../Components/Form/TextField/index';
 import BackButton from '../../Components/Global/BackButton/BackButton';
 
+
  function ForgotPassword() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AuthStack>>();
 
      const [email, setEmail] = useState<string>('');
   return (

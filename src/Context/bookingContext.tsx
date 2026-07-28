@@ -2,7 +2,7 @@
 import React from 'react';
 import { useState, useEffect, createContext, useContext } from 'react';
 import firestore from '@react-native-firebase/firestore'
-import { authInstance, firestoreInstance } from '../../../Firebase/firebaseConfig';
+import { authInstance, firestoreInstance } from '../services/firebase/firebaseConfig';
 import auth from '@react-native-firebase/auth';
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
@@ -38,8 +38,8 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 export const BookingContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(auth().currentUser
-  );
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(auth().currentUser);
+  
   useEffect(() => {    
     const unsubscribeAuth = auth().onAuthStateChanged(currentUser => {
       setUser(currentUser);

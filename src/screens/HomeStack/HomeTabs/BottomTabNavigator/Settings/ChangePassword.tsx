@@ -14,9 +14,9 @@ import { useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../../Navigation/navigation';
 import BackButton from '../../../../../Components/Global/BackButton/BackButton';
-import { authInstance } from '../../../../../Firebase/firebaseConfig';
+import { authInstance } from '../../../../../services/firebase/firebaseConfig';
 import { FontType } from '../../../../../Components/Constants/FontType';
-import { useAuth } from '../../../../../Context/Firebase/UserData/AuthContext';
+import { useAuth } from '../../../../../Context/AuthContext';
 
 export default function ChangePassword() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();

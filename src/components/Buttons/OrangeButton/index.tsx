@@ -1,7 +1,7 @@
 import React from "react";  
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { ViewStyle, TextStyle, StyleProp } from "react-native";
-import { FontType } from '../../Constants/FontType'
+import { FontType } from "../../Constants/FontType";
 
 type OrangeButtonProps = {
   title: string;

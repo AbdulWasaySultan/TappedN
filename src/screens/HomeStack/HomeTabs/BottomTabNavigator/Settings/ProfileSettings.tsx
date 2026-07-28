@@ -8,11 +8,12 @@ import {
   ScrollView,
   Image,
   Alert,
+  Dimensions
 } from 'react-native';
+
 import { useState } from 'react';
 import { ImageBackground } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../../Navigation/navigation';
 import { ImageStyle } from 'react-native';
 import CustomTextField from '../../../../../Components/Form/TextField';
 import {
@@ -24,12 +25,15 @@ import {
 import BackButton from '../../../../../Components/Global/BackButton/BackButton';
 import { RootState, AppDispatch } from '../../../../../redux/store/store';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateProfile } from '../../../../../redux/slices/userData/userSlice';
+import { updateProfile } from '../../../../../redux/slices/userSlice';
 import { ActivityIndicator } from 'react-native';
-import { authInstance,firestoreInstance } from '../../../../../Firebase/firebaseConfig';
+import { authInstance,firestoreInstance } from '../../../../../services/firebase/firebaseConfig';
+import HomeStack from '../../../../../Stacks/HomeStack';
 
 export default function ProfileSettings() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { width, height } = Dimensions.get('window');
+  
+  const navigation = useNavigation<NavigationProp<typeof HomeStack>>();
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state : RootState) => state.user);
 

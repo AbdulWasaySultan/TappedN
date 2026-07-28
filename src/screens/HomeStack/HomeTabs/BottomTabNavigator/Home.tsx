@@ -11,51 +11,72 @@ import {
   ScrollView,
   ImageSourcePropType,
   Dimensions,
-  PermissionsAndroid, Platform
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList, OutletData, HomeStackParamList } from '../../../../Navigation/navigation' // **CHANGE 1: Import OutletData type**
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import ViewAll from '../../../Shared/ViewAll';
 
-import Container from '../../../../Components/Layout/Container'
+import Container from '../../../../Components/Layout/Container';
 import { FontType } from '../../../../Components/Constants/FontType';
 import SafeImage from '../../../../Components/Global/SafeImage';
 
-import { fetchAllOutlets } from '../../../../API/api';
+import { fetchAllOutlets } from '../../../../services/API/api';
 
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/store';
 
 import Geolocation from 'react-native-geolocation-service';
+import { HomeStack, HomeTabs, OutletData } from '../../../../Navigation/navigation';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 
+// Home.tsx - Add this configuration at the top of your file
+const IMAGE_CONFIG = {
+  // Default fallback images
+  fallbacks: {
+    default: require('../../../../assets/images/OutletWindowCleaning/deepCleaning.png'),
+    windowCleaning: require('../../../../assets/images/OutletWindowCleaning/windowService.png'),
+    hairTreatment: require('../../../../assets/images/OutletHairTreatment/OutletPics/pic3.png'),
+    profile: require('../../../../assets/images/Others/profile.png'),
+  },
+
+  // Helper function to get fallback by outlet type
+  getFallbackForOutlet: (outletId: string) => {
+    // You can customize based on outlet ID, type, or any logic
+    if (outletId === '1') {
+      return IMAGE_CONFIG.fallbacks.windowCleaning;
+    }
+    return IMAGE_CONFIG.fallbacks.hairTreatment;
+  },
+};
+
 export default function Home() {
-  const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  // const { userFullName, selectedProfileImage } = useUser();
+  const route = useRoute<RouteProp<HomeTabs, 'Home'>>();
+
   const [searchServices, setSearchServices] = useState<string>('');
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NavigationProp<any>>();
   const [outlets, setOutlets] = useState<OutletData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState<boolean>(false);
-  
-  const userName = useSelector((state : RootState) => state.user.name);
-  const profileImage = useSelector((state : RootState) => state.user.profileImage);
+
+  const userName = useSelector((state: RootState) => state.user.name);
+  const profileImage = useSelector(
+    (state: RootState) => state.user.profileImage,
+  );
 
   const hasPermissionLogic = async () => {
- if (Platform.OS === 'ios') {
-      const status = await Geolocation.requestAuthorization('whenInUse')
-        return status === 'granted';
-  }
+    if (Platform.OS === 'ios') {
+      const status = await Geolocation.requestAuthorization('whenInUse');
+      return status === 'granted';
+    }
     if (Platform.OS === 'android') {
-
       const hasPermission = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      )
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      );
 
       if (hasPermission) return true;
 
@@ -65,95 +86,88 @@ export default function Home() {
       return status === PermissionsAndroid.RESULTS.GRANTED;
     }
     return true;
-  }
+  };
 
   useEffect(() => {
+    const fetchAndSetOutlets = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchAllOutlets();
+        setOutlets(result);
+        //  setError(null);
+      } catch (error: any) {
+        console.log(error.message);
+        setError(error.message);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchAndSetOutlets = async () => {
-    try{
-      setLoading(true)
-   const result = await fetchAllOutlets();
-   setOutlets(result)
-  //  setError(null);
-    }
-    catch(error : any){
-      console.log(error.message);
-      setError(error.message);
-      setLoading(false)
-    }
-    finally{
-      setLoading(false)
-    }
-  }
+    const getCurrentLocation = async () => {
+      const hasPermission = await hasPermissionLogic();
+      if (!hasPermission) return;
 
-const getCurrentLocation = async () => {
-  const hasPermission = await hasPermissionLogic();
-  if (!hasPermission) return;
-
-  Geolocation.getCurrentPosition(
-    position => {
-      console.log(position.coords.latitude);
-      console.log(position.coords.longitude);
-    },
-    error => {
-      console.log(error.code, error.message);
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 10000,
-      showLocationDialog: true,
-    }
-  )}
-  fetchAndSetOutlets();
-  getCurrentLocation();
-  
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log(position.coords.latitude);
+          console.log(position.coords.longitude);
+        },
+        error => {
+          console.log(error.code, error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 10000,
+          showLocationDialog: true,
+        },
+      );
+    };
+    fetchAndSetOutlets();
+    getCurrentLocation();
   }, []);
-
+  
 
   const handleSearch = () => {
     console.log('searchServices', searchServices);
   };
   const handleViewAll = () => {
     navigation.navigate('ServiceStack', {
-      screen : 'ViewAll'
+      screen: 'ViewAll',
     });
   };
   const renderOutlets = ({ item }: { item: OutletData }) => {
     const fallbackImage = require('../../../../assets/images/OutletWindowCleaning/windowService.png');
     const fallbackImage2 = require('../../../../assets/images/OutletHairTreatment/OutletPics/pic3.png');
 
-
     return (
       <TouchableOpacity
         // onPress={() => navigation.navigate({serviceName})}
         style={[styles.serviceTouchableContainer]}
         onPress={() =>
-          navigation.navigate(
-            'ServiceStack',
-            {
-              screen: 'MyTabs',
-              params: {
-                outletId: item.id,
-              }
-            })
+          navigation.navigate('OutletTabs', {
+            screen: 'MyTabs',
+            params: {
+              outletId: item.id,
+            },
+          })
         }
       >
         <SafeImage
           uri={item.outletBgImage}
-          fallbackSource={item.id == '1' ? fallbackImage : fallbackImage2}
+          fallbackSource={IMAGE_CONFIG.getFallbackForOutlet(item.id)}
           style={styles.serviceImage}
           resizeMode="cover"
-          deferUntilInteractions
         />
 
         <View style={styles.serviceDetailsColumn}>
           <View style={styles.serviceDetailsRow}>
             <View style={styles.serviceName}>
               <Text style={styles.serviceNameText}>
-                {item.services.length > 0 ? 
-                item.services[0].serviceName : 'no service'
-                }
+                {item.services.length > 0
+                  ? item.services[0].serviceName
+                  : 'no service'}
               </Text>
               <Text style={styles.serviceShopName}>{item.outletName}</Text>
             </View>
@@ -166,11 +180,7 @@ const getCurrentLocation = async () => {
               <Text style={styles.serviceDetailsPriceText}>
                 $
                 <Text style={styles.serviceDetailsPriceTextBold}>
-                  {
-                  item.services.length > 0 ? 
-                  item.services[0].price 
-                  : 0
-                  }
+                  {item.services.length > 0 ? item.services[0].price : 0}
                 </Text>
                 /h
               </Text>
@@ -183,31 +193,31 @@ const getCurrentLocation = async () => {
     );
   };
 
-// useEffect(() => {
+  // useEffect(() => {
 
-//   const fetchOutlets = async () => {
-//     try{
-//       setLoading(true)
-//       setError(null)
-//   const response = await api.get('/outlets')
-//   if (response.data && Array.isArray(response.data.outlets)) {
-//     setOutlets(response.data.outlets);
-//     console.log("API Data:", JSON.stringify(response.data, null, 2));
-//   } else {
-//     console.log('Invalid data format received from API');
-//     console.log(error)
-//     setError(error)
-//     console.log("API Data:", JSON.stringify(response.data, null, 2));
-//   }  
-//     } catch (error) {
-//       console.log(error,error)
-//     }
-//     finally{
-//       setLoading(false);
-//     }
-//   }
-//   fetchOutlets()
-// }, []);
+  //   const fetchOutlets = async () => {
+  //     try{
+  //       setLoading(true)
+  //       setError(null)
+  //   const response = await api.get('/outlets')
+  //   if (response.data && Array.isArray(response.data.outlets)) {
+  //     setOutlets(response.data.outlets);
+  //     console.log("API Data:", JSON.stringify(response.data, null, 2));
+  //   } else {
+  //     console.log('Invalid data format received from API');
+  //     console.log(error)
+  //     setError(error)
+  //     console.log("API Data:", JSON.stringify(response.data, null, 2));
+  //   }
+  //     } catch (error) {
+  //       console.log(error,error)
+  //     }
+  //     finally{
+  //       setLoading(false);
+  //     }
+  //   }
+  //   fetchOutlets()
+  // }, []);
 
   const serviceCategories = [
     {
@@ -271,21 +281,21 @@ const getCurrentLocation = async () => {
             style={styles.serviceIcon}
           />
         </View>
-       <View style={styles.nameContainer}>
-       <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
-          {item.name}
-        </Text>
-       </View>
+        <View style={styles.nameContainer}>
+          <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
+            {item.name}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
-if(loading){
-  return(
-    <SafeAreaView style={styles.safeArea}>
-      <Text>Loading...</Text>
-    </SafeAreaView>
-  )
-}
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -310,39 +320,40 @@ if(loading){
                   fallbackSource={require('../../../../assets/images/Others/profile.png')}
                   style={styles.userImage}
                   resizeMode="cover"
-                  deferUntilInteractions
                 />
               </View>
               <Text style={styles.orangeTitle}>Good Afternoon</Text>
-            </View>            
-            
-<View style={styles.searchWrapper}>
-  <Image
-    source={require('../../../../assets/images/Home/search.png')}
-    style={styles.searchIcon}
-  />
+            </View>
 
-  <TextInput
-    placeholder="Search Nearby Service"
-    style={styles.searchInput}
-    onChangeText={setSearchServices}
-    value={searchServices}
-    onSubmitEditing={handleSearch}
-    returnKeyType="search"
-    autoCapitalize="none"
-  />
+            <View style={styles.searchWrapper}>
+              <Image
+                source={require('../../../../assets/images/Home/search.png')}
+                style={styles.searchIcon}
+              />
 
-  <View style={styles.divider} />
+              <TextInput
+                placeholder="Search Nearby Service"
+                style={styles.searchInput}
+                onChangeText={setSearchServices}
+                value={searchServices}
+                onSubmitEditing={handleSearch}
+                returnKeyType="search"
+                autoCapitalize="none"
+              />
 
-  <TouchableOpacity
-    onPress={() => navigation.navigate('ServiceStack', { screen: 'Filters' })}
-  >
-    <Image
-      source={require('../../../../assets/images/Home/filter.png')}
-      style={styles.filterIcon}
-    />
-  </TouchableOpacity>
-</View>
+              <View style={styles.divider} />
+
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('ServiceStack', { screen: 'Filters' })
+                }
+              >
+                <Image
+                  source={require('../../../../assets/images/Home/filter.png')}
+                  style={styles.filterIcon}
+                />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity onPress={handleViewAll} style={styles.viewAll}>
               <Text style={styles.boldUnderlined}>{`View all>`}</Text>
             </TouchableOpacity>
@@ -361,26 +372,35 @@ if(loading){
                     item={item}
                     onPress={() => {
                       // Handle navigation based on screen name
-                               switch (item.screen) {
+                      switch (item.screen) {
                         case 'Estheticians':
-                          navigation.navigate('ServiceStack', { screen: 'Estheticians' });
+                          navigation.navigate('ServiceStack', {
+                            screen: 'Estheticians',
+                          });
                           break;
                         case 'MusicStudio':
-                          navigation.navigate('ServiceStack', { screen: 'MusicStudio' });
+                          navigation.navigate('ServiceStack', {
+                            screen: 'MusicStudio',
+                          });
                           break;
                         case 'Handyman':
-                          navigation.navigate('ServiceStack', { screen: 'Handyman' });
+                          navigation.navigate('ServiceStack', {
+                            screen: 'Handyman',
+                          });
                           break;
                         case 'Barbers':
-                          navigation.navigate('ServiceStack', { screen: 'Barbers' });
+                          navigation.navigate('ServiceStack', {
+                            screen: 'Barbers',
+                          });
                           break;
                         case 'Yoga':
-                          navigation.navigate('ServiceStack', { screen: 'Yoga' });
+                          navigation.navigate('ServiceStack', {
+                            screen: 'Yoga',
+                          });
                           break;
                         default:
                           console.log('Unknown screen:', item.screen);
                       }
-                      
                     }}
                   />
                 )}
@@ -399,7 +419,6 @@ if(loading){
                 </View>
               </View>
 
-
               <FlatList
                 data={outlets}
                 keyExtractor={item => item.id.toString()}
@@ -409,14 +428,14 @@ if(loading){
                 scrollEnabled={false}
               />
             </View>
-            </View>
+          </View>
         </Container>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const SCREEN_PADDING = 24 // Total horizontal padding (16 left + 16 right)
+const SCREEN_PADDING = 24; // Total horizontal padding (16 left + 16 right)
 const ITEM_WIDTH = (width - SCREEN_PADDING) / 5;
 const styles = StyleSheet.create({
   safeArea: {
@@ -531,41 +550,41 @@ const styles = StyleSheet.create({
   //   padding: 10,
   // },
   searchWrapper: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  width: '90%',
-  alignSelf: 'center',
-  borderWidth: 0.5,
-  borderColor: '#F27122',
-  borderRadius: 13,
-  height: 55,
-  paddingHorizontal: 15,
-  marginTop: 15,
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '90%',
+    alignSelf: 'center',
+    borderWidth: 0.5,
+    borderColor: '#F27122',
+    borderRadius: 13,
+    height: 55,
+    paddingHorizontal: 15,
+    marginTop: 15,
+  },
 
-searchIcon: {
-  width: 22,
-  height: 22,
-  marginRight: 10,
-},
+  searchIcon: {
+    width: 22,
+    height: 22,
+    marginRight: 10,
+  },
 
-searchInput: {
-  flex: 1,
-  fontSize: 16,
-  color: '#000',
-},
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000',
+  },
 
-divider: {
-  width: 1,
-  height: 25,
-  backgroundColor: '#F2712280',
-  marginHorizontal: 10,
-},
+  divider: {
+    width: 1,
+    height: 25,
+    backgroundColor: '#F2712280',
+    marginHorizontal: 10,
+  },
 
-filterIcon: {
-  width: 22,
-  height: 22,
-},
+  filterIcon: {
+    width: 22,
+    height: 22,
+  },
   viewAll: {
     // backgroundColor : 'blue',
     width: 80,
@@ -587,7 +606,7 @@ filterIcon: {
     fontSize: 17,
     color: '#F27122',
   },
-  // 
+  //
   servicesRowContainer: {
     // flexDirection: 'row',
     // alignItems: 'center',
@@ -598,23 +617,22 @@ filterIcon: {
     paddingHorizontal: 11,
     marginTop: 10,
     // backgroundColor: 'red',
-
   },
   rowWrapper: {
     justifyContent: 'space-between', // This pushes items to the edges and spaces the middle ones
   },
-  
+
   itemContainer: {
     alignItems: 'center',
     // justifyContent: 'center',
     // backgroundColor: 'cyan',
     // marginLeft: 6,
     // marginRight: 8,
-    marginHorizontal : isSmallScreen? 0.3 : 1,
+    marginHorizontal: isSmallScreen ? 0.3 : 1,
     // flex: 1,
     width: ITEM_WIDTH,
     // marginRight : -5
-      // 👈 fixed width so text & icon align
+    // 👈 fixed width so text & icon align
   },
   iconWrapper: {
     width: 60,
@@ -623,18 +641,18 @@ filterIcon: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-   serviceIcon: {
+  serviceIcon: {
     width: 30,
     height: 30,
     resizeMode: 'contain',
   },
-  nameContainer:{
-  // flex: 1,
-  // justifyContent: 'center',
-  alignItems: 'center', 
-  width: '100%',
-  marginTop : 9,
-  // backgroundColor: 'pink',
+  nameContainer: {
+    // flex: 1,
+    // justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 9,
+    // backgroundColor: 'pink',
   },
 
   name: {
@@ -646,7 +664,7 @@ filterIcon: {
     lineHeight: 12,
     // flexWrap: 'wrap',     // 👈 allow text wrapping        // 👈 keep under each circle
   },
-  
+
   nearByServicesContainer: {
     width: '100%',
     marginHorizontal: 10,
@@ -657,12 +675,12 @@ filterIcon: {
   },
   nearByRowContainer: {
     width: '100%',
-    height: 40, 
+    height: 40,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     // backgroundColor : 'blue',
-    marginLeft : '10%'
+    marginLeft: '10%',
   },
   nearByText: {
     fontSize: FontType.xxlarge,
@@ -690,7 +708,7 @@ filterIcon: {
     fontWeight: '400',
     color: '#42526E',
     // backgroundColor : 'red',
-marginHorizontal : 10,
+    marginHorizontal: 10,
   },
   serviceTouchableContainer: {
     width: '95%',
@@ -700,7 +718,6 @@ marginHorizontal : 10,
     alignSelf: 'center',
     marginTop: 30,
     marginBottom: 50,
-
   },
   serviceImage: {
     width: '100%',
@@ -766,7 +783,7 @@ marginHorizontal : 10,
     fontFamily: 'Montserrat-Regular',
     fontWeight: '500',
     color: '#42526E',
-    marginBottom : 6
+    marginBottom: 6,
   },
   serviceDetailsPriceTextBold: {
     fontSize: FontType.xxxlarge,
@@ -795,78 +812,76 @@ marginHorizontal : 10,
   },
 });
 
-
-
-  // {/* // const outlets = [ {*/}
-  // {/* //     id: '1',
-  // //     serviceName: 'Window Cleaning',
-  // //     outletName: 'Athens Cleaniners',
-  // //     outletBgImage: require('../assets/images/OutletWindowCleaning/windowService.png'),
-  // //     outletIcon: require('../assets/images/OutletWindowCleaning/windowGuy.png'),
-  // //     rating: 4.2,
-  // //     services: [
-  // //       { */}
-  // {/* //         id: 's1',
-  // //         serviceName: 'Window Cleaning',
-  // //         serviceImage: require('../assets/images/OutletWindowCleaning/windowService.png'),
-  // //         price: 30,
-  // //       },
-  // //       { */}
-  // {/* //         id: 's2',
-  // //         serviceName: 'Deep Cleaning',
-  // //         serviceImage: require('../assets/images/OutletWindowCleaning/deepCleaning.png'),
-  // //         price: 45,
-  // //       },
-  // //     ],
-  // //     photos: [
-  // //       { */}
-  // {/* //         id: 'p1',
-  // //         servicePicture: require('../assets/images/OutletWindowCleaning/windowService.png'),
-  // //       },
-  // //       { */}
-  // {/* //         id: 'p2',
-  // //         servicePicture: require('../assets/images/OutletWindowCleaning/windowService.png'),
-  // //       },
-  // //       { */}
-  // {/* //         id: 'p3',
-  // //         servicePicture: require('../assets/images/OutletWindowCleaning/windowService.png'),
-  // //       },
-  // //     ],
-  // //   },
-  // //   { */}
-  // {/* //     id: '2',
-  // //     serviceName: 'Hair Treatment',
-  // //     outletName: 'Toni & Guy Saloon',
-  // //     outletBgImage: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
-  // //     outletIcon: require('../assets/images/OutletHairTreatment/outlet.png'),
-  // //     rating: 4.5,
-  // //     services: [
-  // //       { */}
-  // {/* //         id: 's1',
-  // //         serviceName: 'Hair Treatment',
-  // //         serviceImage: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
-  // //         price: 25,
-  // //       },
-  // //       { */}
-  // {/* //         id: 's2',
-  // //         serviceName: 'Hair Cut',
-  // //         serviceImage: require('../assets/images/OutletHairTreatment/hairCuts.png'),
-  // //         price: 20,
-  // //       },
-  // //     ],
-  // //     photos: [
-  // //       { */}
-  // {/* //         id: 'p1',
-  // //         servicePicture: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
-  // //       },
-  // //       { */}
-  // {/* //         id: 'p2',
-  // //         servicePicture: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
-  // //       },
-  // //       { */}
-  // {/* //         id: 'p3',
-  // //         servicePicture: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
-  // //       },
-  // //     ],
-  // //   },
-  // // ]; */}
+// {/* // const outlets = [ {*/}
+// {/* //     id: '1',
+// //     serviceName: 'Window Cleaning',
+// //     outletName: 'Athens Cleaniners',
+// //     outletBgImage: require('../assets/images/OutletWindowCleaning/windowService.png'),
+// //     outletIcon: require('../assets/images/OutletWindowCleaning/windowGuy.png'),
+// //     rating: 4.2,
+// //     services: [
+// //       { */}
+// {/* //         id: 's1',
+// //         serviceName: 'Window Cleaning',
+// //         serviceImage: require('../assets/images/OutletWindowCleaning/windowService.png'),
+// //         price: 30,
+// //       },
+// //       { */}
+// {/* //         id: 's2',
+// //         serviceName: 'Deep Cleaning',
+// //         serviceImage: require('../assets/images/OutletWindowCleaning/deepCleaning.png'),
+// //         price: 45,
+// //       },
+// //     ],
+// //     photos: [
+// //       { */}
+// {/* //         id: 'p1',
+// //         servicePicture: require('../assets/images/OutletWindowCleaning/windowService.png'),
+// //       },
+// //       { */}
+// {/* //         id: 'p2',
+// //         servicePicture: require('../assets/images/OutletWindowCleaning/windowService.png'),
+// //       },
+// //       { */}
+// {/* //         id: 'p3',
+// //         servicePicture: require('../assets/images/OutletWindowCleaning/windowService.png'),
+// //       },
+// //     ],
+// //   },
+// //   { */}
+// {/* //     id: '2',
+// //     serviceName: 'Hair Treatment',
+// //     outletName: 'Toni & Guy Saloon',
+// //     outletBgImage: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
+// //     outletIcon: require('../assets/images/OutletHairTreatment/outlet.png'),
+// //     rating: 4.5,
+// //     services: [
+// //       { */}
+// {/* //         id: 's1',
+// //         serviceName: 'Hair Treatment',
+// //         serviceImage: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
+// //         price: 25,
+// //       },
+// //       { */}
+// {/* //         id: 's2',
+// //         serviceName: 'Hair Cut',
+// //         serviceImage: require('../assets/images/OutletHairTreatment/hairCuts.png'),
+// //         price: 20,
+// //       },
+// //     ],
+// //     photos: [
+// //       { */}
+// {/* //         id: 'p1',
+// //         servicePicture: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
+// //       },
+// //       { */}
+// {/* //         id: 'p2',
+// //         servicePicture: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
+// //       },
+// //       { */}
+// {/* //         id: 'p3',
+// //         servicePicture: require('../assets/images/OutletHairTreatment/hairTreatment.png'),
+// //       },
+// //     ],
+// //   },
+// // ]; */}

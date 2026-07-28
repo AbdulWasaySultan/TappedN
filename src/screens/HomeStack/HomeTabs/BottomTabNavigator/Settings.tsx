@@ -18,7 +18,7 @@ import { getSafeImageSource } from '../../../../utils/imageSource';
 
 import { useDispatch } from 'react-redux';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { handleGlobalLogout } from '../../../../redux/hooks/Logout';
+import { handleGlobalLogout } from '../../../../Context/hooks/Logout';
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 

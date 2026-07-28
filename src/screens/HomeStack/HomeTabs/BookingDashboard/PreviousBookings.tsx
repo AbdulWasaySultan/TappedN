@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useBookingContext } from '../../../../Context/Firebase/Booking/bookingContext';
+import { useBookingContext } from '../../../../Context/bookingContext';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { getSafeImageSource } from '../../../../utils/imageSource';

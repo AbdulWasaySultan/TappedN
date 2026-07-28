@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
+import { RootStack } from '../../Navigation/navigation';
 import { NavigationProp } from '@react-navigation/native';
 import BackButton from '../../Components/Global/BackButton/BackButton';
 import { FlatList } from 'react-native';
@@ -28,7 +28,7 @@ type BrandResponse = {
 
 export default function ViewAll() {
   const [brands, setBrands] = useState<data[]>([]);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStack>>();
 
   const fetchBrands = async () => {
     try {
@@ -68,7 +68,6 @@ export default function ViewAll() {
           fallbackSource={require('../../assets/images/Others/profile.png')}
           style={styles.image}
           resizeMode="contain"
-          deferUntilInteractions
         />
         <Text>ID: {item.id}</Text>
         <Text>Title: {item.title}</Text>

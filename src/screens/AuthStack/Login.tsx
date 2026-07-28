@@ -16,28 +16,26 @@ import {
   useNavigation,
   NavigationProp,
 } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
-
 import { Dimensions } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 import { useDispatch } from 'react-redux';
-import { setUser } from '../../redux/slices/userData/userSlice';
+import { setUser } from '../../redux/slices/userSlice';
 import { AppDispatch } from '../../redux/store/store';
 import { doc, getDoc, setDoc } from '@react-native-firebase/firestore'; // Add getDoc
-import { authInstance, firestoreInstance } from '../../Firebase/firebaseConfig';
+import { authInstance, firestoreInstance } from '../../services/firebase/firebaseConfig';
 import { signInWithEmailAndPassword } from '@react-native-firebase/auth';
-import type { UserProfile } from '../../Context/Firebase/UserData/UserContext';
-import { UserState } from '../../redux/slices/userData/userSlice';
-import { getUserProfile } from '../../Firebase/messageUtils';
-import { getUserData } from '../../Context/Firebase/UserData/UserContext';
+import type { UserProfile } from '../../Context/UserContext';
+import { UserState } from '../../redux/slices/userSlice';
+import { FontType } from '../../Components/Constants/FontType';
 
-import { useAuth } from '../../Context/Firebase/UserData/AuthContext';
+import { useAuth } from '../../Context/AuthContext';
+import { AuthStack } from '../../Navigation/navigation';
 
 const {width, height} = Dimensions.get('window');
 
 export default function Login() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AuthStack>>();
   // const { login, loading,fetchUserProfileFromFirebase } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

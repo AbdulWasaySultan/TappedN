@@ -38,7 +38,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         // Listen to the specific user document in Firestore
         const unsubUser = firestore()
-          .collection('Users')
+          .collection('users')
           .doc(user.uid)
           .onSnapshot(doc => {
             setUserData(doc.data() as UserProfile || null);
@@ -56,14 +56,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   // Method to update user profile (Name, Address, etc.)
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!userId) return;
-    await firestore().collection('Users').doc(userId).update(updates);
+    await firestore().collection('users').doc(userId).update(updates);
   };
 
   // Method to update Location specifically
   const updateUserLocationInFirebase = async (latitude: number, longitude: number) => {
     if (!userId) return;
     try {
-      await firestore().collection('Users').doc(userId).update({
+      await firestore().collection('users').doc(userId).update({
         location: {
           latitude,
           longitude,

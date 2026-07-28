@@ -1,14 +1,13 @@
-// MessagingScreen.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   Image,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Container from '../../../../Components/Layout/Container';
 import BackButton from '../../../../Components/Global/BackButton/BackButton';
@@ -17,47 +16,131 @@ import { Dimensions } from 'react-native';
 import ChatList from '../../../../Components/Chat/ChatList';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/store';
-import { sendMessage, listenToMessages } from '../../../../Firebase/messageUtils';
+import { sendMessage, loadMessages } from '../../../../services/firebase/messageUtils';
+import { createOrGetChat } from '../../../../services/firebase/chatUtils';
+import { fetchServiceProvider } from '../../../../services/firebase/providerUtils'; // ✅ ADD THIS IMPORT
 import { getSafeImageSource } from '../../../../utils/imageSource';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../Navigation/navigation';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { HomeStack } from '../../../../Navigation/navigation';
 
-const {width, height} = Dimensions.get('window')
-const isSmallScreen = height < 800
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 800;
 
-// Define the message type
 type Message = {
   id: string;
   text: string;
   senderId: string;
   timestamp: any;
-  // add other properties as needed
 };
 
-type MessagingScreenRouteProp = RouteProp<RootStackParamList, 'MessagingScreen'>;
+type MessagingScreenRouteProp = RouteProp<HomeStack, 'MessagingScreen'>;
 
-export default function MessagingScreen({ navigation }: any) {
+export default function MessagingScreen() {
   const route = useRoute<MessagingScreenRouteProp>();
-  const { chatId, serviceProvider } = route.params || {};
+  const navigation = useNavigation();
   
-  const currentUser = useSelector((state: RootState) => state.user)
-  const [messageText, setMessageText] = useState('')
-  const [messages, setMessages] = useState<Message[]>([]) // ✅ Fixed: Added proper type
+  // ✅ CORRECT: Get providerId and chatId from params (not serviceProvider)
+  const { 
+    chatId: paramChatId, 
+    providerId  // ✅ This is what you need
+  } = route.params || {};
+  
+  const [chatId, setChatId] = useState(paramChatId || null);
+  const [provider, setProvider] = useState<any>(null);
+  const [loadingProvider, setLoadingProvider] = useState(true);
+  const currentUser = useSelector((state: RootState) => state.user);
+  const [messageText, setMessageText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isInitializing, setIsInitializing] = useState(!paramChatId);
 
-  // Validate required params
+  // ✅ Fetch provider data when screen loads
   useEffect(() => {
-    if (!chatId || !serviceProvider) {
-      Alert.alert('Error', 'Invalid chat data');
-      navigation.goBack();
-    }
-  }, []);
+    const loadProviderData = async () => {
+      if (!providerId) {
+        console.error('No provider ID provided');
+        Alert.alert('Error', 'Unable to load chat');
+        navigation.goBack();
+        return;
+      }
 
+      try {
+        console.log('[MessagingScreen] Fetching provider:', providerId);
+        const providerData = await fetchServiceProvider(providerId);
+        
+        if (!providerData) {
+          throw new Error('Provider not found');
+        }
+        
+        setProvider(providerData);
+        console.log('[MessagingScreen] Provider loaded:', providerData);
+      } catch (error) {
+        console.error('[MessagingScreen] Error loading provider:', error);
+        Alert.alert('Error', 'Failed to load provider information');
+        navigation.goBack();
+      } finally {
+        setLoadingProvider(false);
+      }
+    };
+
+    loadProviderData();
+  }, [providerId]); // ✅ Depends on providerId
+
+  // ✅ Initialize or create chat
+  useEffect(() => {
+    // If chatId was passed and we have provider, we're good
+    if (paramChatId && provider) {
+      setChatId(paramChatId);
+      setIsInitializing(false);
+      return;
+    }
+
+    // Don't proceed if no provider or user
+    if (!provider || !currentUser?.uid) return;
+
+    const initializeChat = async () => {
+      try {
+        console.log('Initializing chat with:', {
+          currentUserId: currentUser.uid,
+          currentUserName: currentUser.name,
+          serviceProviderId: provider.uid,
+          serviceProviderName: provider.name,
+        });
+
+        const existingOrNewChatId = await createOrGetChat(
+          currentUser.uid,
+          currentUser.name || 'User',
+          currentUser.profileImage || '',
+          provider.uid,
+          provider.name || 'Service Provider',
+          provider.profileImage || '',
+          provider.outletName || '',
+        );
+
+        if (existingOrNewChatId) {
+          setChatId(existingOrNewChatId);
+          console.log('Chat initialized with ID:', existingOrNewChatId);
+        } else {
+          throw new Error('Failed to create/get chat');
+        }
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+        Alert.alert('Error', 'Failed to initialize chat');
+        navigation.goBack();
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeChat();
+  }, [provider?.uid, currentUser?.uid, paramChatId]);
+
+  // ✅ Load messages once chatId is available
   useEffect(() => {
     if (!chatId) return;
     
-    // Start listening to messages
-    const unsubscribe = listenToMessages(chatId, (newMessages: Message[]) => { // ✅ Added type
-      setMessages(newMessages)
+    console.log('Loading messages for chat:', chatId);
+    const unsubscribe = loadMessages(chatId, (newMessages: Message[]) => {
+      setMessages(newMessages);
     });
     
     return () => unsubscribe();
@@ -65,14 +148,17 @@ export default function MessagingScreen({ navigation }: any) {
 
   const handleSendMessage = async () => {
     if (messageText.trim().length === 0) return;
+    if (!chatId) {
+      Alert.alert('Error', 'Chat not initialized');
+      return;
+    }
 
     try {
-      // ✅ Fixed: sendMessage expects 3 arguments, not 4
       await sendMessage(
         chatId,
         currentUser.uid,
-        serviceProvider?.uid,
-        messageText  // Only 3 arguments: chatId, senderId, messageText
+        provider?.uid,
+        messageText 
       );
       setMessageText('');
     } catch (error) {
@@ -81,11 +167,21 @@ export default function MessagingScreen({ navigation }: any) {
     }
   };
 
-  // Show loading if data is missing
-  if (!serviceProvider) {
+  // Show loading states
+  if (loadingProvider || !provider) {
     return (
-      <Container style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading...</Text>
+      <Container style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#F27122" />
+        <Text style={styles.loadingText}>Loading chat...</Text>
+      </Container>
+    );
+  }
+
+  if (isInitializing) {
+    return (
+      <Container style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#F27122" />
+        <Text style={styles.loadingText}>Initializing chat...</Text>
       </Container>
     );
   }
@@ -95,24 +191,22 @@ export default function MessagingScreen({ navigation }: any) {
       <BackButton />
       <View style={styles.titleContainer}>
         <Text style={styles.userName}>
-          {serviceProvider?.name || 'User'}
+          {provider?.name || 'User'}
         </Text>
-        {serviceProvider?.outletName && (
+        {provider?.outletName && (
           <Text style={styles.outletName}>
-            {serviceProvider.outletName}
+            {provider.outletName}
           </Text>
         )}
       </View>
 
       <View style={styles.container}>
-        {/* Messages List */}
         <ChatList
           messages={messages}
           currentUser={currentUser}
-          provider={serviceProvider}
+          provider={provider}
         />
 
-        {/* Input Area */}
         <View style={styles.messageContainer}>
           <View style={styles.rowContainer}>
             <View style={styles.inputPill}>
@@ -177,6 +271,16 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     width: '100%',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: FontType.medium,
+    color: '#42526E',
+  },
   titleContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -210,8 +314,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-evenly',
     paddingHorizontal: 15,
-    paddingRight: 70,
     width: '100%',
+    // backgroundColor: '#000',
   },
   inputPill: {
     flex: 1,

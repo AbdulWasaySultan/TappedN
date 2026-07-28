@@ -7,15 +7,15 @@ import {
   where, 
   FirebaseFirestoreTypes          // Import this
 } from '@react-native-firebase/firestore';
-import { firestoreInstance } from '../../Firebase/firebaseConfig';
+import { firestoreInstance } from '../../services/firebase/firebaseConfig';
 
 import {
   setServiceProviders,
   clearServiceProviders,
   ServiceProvider,
   ServiceProviderData
-} from '../slices/vendorData/serviceProviderSlice';
-import { RootState } from '../store/store';
+} from '../../redux/slices/serviceProviderSlice';
+import { RootState } from '../../redux/store/store';
 // import { fetchServiceProvidersFromAPI } from '../API/api';
 
 /**

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,74 +9,124 @@ import {
 } from 'react-native';
 import { FontType } from '../../../Components/Constants/FontType';
 import {
-  MyTabsParamList,
   BusinessDetails,
-  OutletData,
-  HomeTabsParamList,
-  RootStackParamList,
+  HomeStack,
+  OutletTabs,
+  RootStack,
 } from '../../../Navigation/navigation';
-// import { useRoute, RouteProp } from '@react-navigation/native';
-import { useOutletContext } from '../../../Context/API/Outlet/OutletContext';
-import { useServiceProviders } from '../../../redux/hooks/useServiceProviders';
-import { createOrGetChat } from '../../../Firebase/chatUtils';
+import { useOutletContext } from '../../../Context/OutletContext';
+import { createOrGetChat } from '../../../services/firebase/chatUtils';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store/store';
-import { useNavigation, NavigationProp, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import SafeImage from '../../../Components/Global/SafeImage';
+import { fetchServiceProvider } from '../../../services/firebase/providerUtils';
 
-type BusinessInfoProps = {
+type Props = {
   outletId: string;
 };
 
-export default function BusinessInfo({outletId} : BusinessInfoProps) {
-// const route = useRoute<RouteProp<MyTabsParamList, 'BusinessInfo'>>()
-// const {outletId} = route.params
-
+// export default function BusinessInfo({outletId} : BusinessInfoProps) {
+export default function BusinessInfo({ outletId }: Props) {
+  const route = useRoute<RouteProp<OutletTabs, 'BusinessInfo'>>();
+  // const {outletId} = route.params
   const { getOutletById } = useOutletContext();
-  const { getProviderById } = useServiceProviders();
-  const { fetchProviders } = useServiceProviders();
   const outletData = getOutletById(outletId);
   const currentUser = useSelector((state: RootState) => state.user);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<HomeStack>>();
 
-  const handleStartChat = async (providerId: string) => {
+  const [provider, setProvider] = useState<any>(null);
+  const [loadingProvider, setLoadingProvider] = useState(false);
+
+
+  useEffect(() => {
+    const loadProvider = async () => {
+        const providerId = outletData?.serviceProviderId || outletData?.id;
+
+        if (!providerId) {
+            console.error('No provider ID found for outlet:', outletData);
+            return;
+        }
+
+        setLoadingProvider(true);
+        try {
+            const providerData = await fetchServiceProvider(providerId);
+            setProvider(providerData);
+        } catch (error) {
+            console.error('Error fetching provider data:', error);
+        } finally {
+            setLoadingProvider(false);
+        }
+  }
+    if (outletData) {
+      loadProvider();
+    }
+    console.log('provider data in business info:', provider);
+  },[outletData]);
+
+  const handleStartChat = async () => {
     try {
-      console.log('handleStartChat called with providerId:', providerId);
-      console.log('currentUser:', currentUser);
-      console.log('currentUser.uid:', currentUser?.uid);
-      
+      // console.log('[Chat] handleStartChat called with providerId:', providerIds);
+      const providerId = outletData?.serviceProviderId || outletData?.id;
+      console.log('[Chat] handleStartChat called with providerId:', providerId);
+
       if (!currentUser?.uid) {
-        console.error('Error: No current user UID available');
+        console.error('[Chat] Error: No current user UID available');
         return;
       }
 
       if (!providerId) {
-        console.error('Error: No provider ID available');
+        console.error('[Chat] Error: No provider ID available');
         return;
       }
 
-      // Create or get existing chat
-      const chatId = await createOrGetChat(currentUser.uid, providerId);
+      if (!provider) {
+        console.error('[Chat] Provider data not loaded yet');
+        return;
+      }
+
+      console.log('[Chat] Current User:', {
+        uid: currentUser.uid,
+        name: currentUser.name,
+        profileImage: currentUser.profileImage,
+      });
+
+      console.log('[Chat] Service Provider:', {
+        uid: providerId,
+        name: provider.name,
+        profileImage: provider.profileImage,
+        outletName: provider.outletName,
+      });
+
+      // Create or get existing chat with ALL required parameters
+      const chatId = await createOrGetChat(
+        currentUser.uid,
+        currentUser.name,
+        currentUser.profileImage,
+        providerId,
+        provider.name,
+        provider.profileImage,
+        provider.outletName || '',
+      );
 
       if (chatId) {
-        // Get provider details from Redux
-        const provider = getProviderById(providerId);
-      
-        
         // Navigate to messaging screen
         navigation.navigate('MessagingScreen', {
-          chatId,
-          serviceProvider: {
-            uid: providerId,
-            name: provider?.name || '',
-            profileImage: provider?.profileImage || '',
-            outletName: provider?.outletName || '',
-          },
-          
-        });
+            chatId: chatId,
+            providerId : providerId,
+            // lastMessage: 'No messages yet',
+            // lastMessageTimestamp: null,
+      });
+      } else {
+        console.error('[Chat] Failed to create chat');
       }
     } catch (error) {
-      console.error('Error starting chat:', error);
+      console.error('[Chat] Error starting chat:', error);
     }
   };
 
@@ -90,35 +140,36 @@ export default function BusinessInfo({outletId} : BusinessInfoProps) {
 
   // const route = useRoute<RouteProp<MyTabsParamList, 'BusinessInfo'>>();
   // const { outletData } = route.params;
-  const photosArray = outletData?.photos?.map(photo => photo.servicePicture) || [];
+  const photosArray =
+    outletData?.photos?.map(photo => photo.servicePicture) || [];
   const validPhotos = photosArray.filter(url => url && url.trim() !== '');
 
-    const icons = [
-     require('../../../assets/images/BusinessInfo/radius.png'),
-     require('../../../assets/images/BusinessInfo/clock.png'),
-     require('../../../assets/images/BusinessInfo/contact.png'),
-     require('../../../assets/images/BusinessInfo/shop.png'),
-     require('../../../assets/images/BusinessInfo/globeIcon.png'),
-     require('../../../assets/images/BusinessInfo/locationIcon.png')
-    ]
+  const icons = [
+    require('../../../assets/images/BusinessInfo/radius.png'),
+    require('../../../assets/images/BusinessInfo/clock.png'),
+    require('../../../assets/images/BusinessInfo/contact.png'),
+    require('../../../assets/images/BusinessInfo/shop.png'),
+    require('../../../assets/images/BusinessInfo/globeIcon.png'),
+    require('../../../assets/images/BusinessInfo/locationIcon.png'),
+  ];
 
-    const pic1 = require('../../../assets/images/OutletHairTreatment/OutletPics/pic1.png')
-    const pic2 = require('../../../assets/images/OutletHairTreatment/OutletPics/pic2.png')
-    const pic3 = require('../../../assets/images/OutletHairTreatment/OutletPics/pic3.png')
+  const pic1 = require('../../../assets/images/OutletHairTreatment/OutletPics/pic1.png');
+  const pic2 = require('../../../assets/images/OutletHairTreatment/OutletPics/pic2.png');
+  const pic3 = require('../../../assets/images/OutletHairTreatment/OutletPics/pic3.png');
 
+  const pic4 = require('../../../assets/images/OutletWindowCleaning/windowService.png');
+  const pic5 = require('../../../assets/images/OutletWindowCleaning/deepCleaning.png');
+  const pic6 = require('../../../assets/images/OutletWindowCleaning/windowService.png');
 
-    const pic4 = require('../../../assets/images/OutletWindowCleaning/windowService.png')
-    const pic5 = require('../../../assets/images/OutletWindowCleaning/deepCleaning.png')
-    const pic6 = require('../../../assets/images/OutletWindowCleaning/windowService.png')
-    
-    const TonyPics = [pic1,pic2,pic3]
-    const AthensPics = [pic4, pic5,pic6]
+  const TonyPics = [pic1, pic2, pic3];
+  const AthensPics = [pic4, pic5, pic6];
 
   const ServicePictures = () => {
     // 1. Check if we have valid API photos from your mock.io
-    const validApiPhotos = outletData?.photos?.filter(
-      photo => photo.servicePicture && photo.servicePicture.trim() !== ''
-    ) || [];
+    const validApiPhotos =
+      outletData?.photos?.filter(
+        photo => photo.servicePicture && photo.servicePicture.trim() !== '',
+      ) || [];
 
     // 2. If API photos exist, show them
     if (validApiPhotos.length > 0) {
@@ -131,7 +182,6 @@ export default function BusinessInfo({outletId} : BusinessInfoProps) {
               fallbackSource={require('../../../assets/images/OutletWindowCleaning/windowService.png')}
               style={styles.picture}
               resizeMode="cover"
-              deferUntilInteractions
             />
           ))}
         </>
@@ -205,28 +255,24 @@ export default function BusinessInfo({outletId} : BusinessInfoProps) {
     >
       <View style={styles.mainContainer}>
         <View style={styles.aboutContainer}>
-          <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
-            <Text style={styles.title}>About</Text>
-            <TouchableOpacity onPress={() => {
-              console.log('Chat clicked - outletData:', outletData);
-              console.log('serviceProviderId:', outletData?.serviceProviderId);
-              
-              // Use serviceProviderId if available, otherwise use outlet ID as fallback
-              const providerId = outletData?.serviceProviderId || outletData?.id;
-              
-              if (providerId) {
-                console.log('Starting chat with providerId:', providerId);
-                handleStartChat(providerId);
-              } else {
-                console.log('Error: No providerId or outlet ID available');
-              }
+          <View
+            style={{
+              flexDirection: 'row',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignItems: 'center', // ✅ Added for better alignment
             }}
-            style={{backgroundColor : '#FFFF' }}
+          >
+            <Text style={styles.title}>About</Text>
+            <TouchableOpacity
+              onPress={handleStartChat}
+              style={{ backgroundColor: '#FFFF' }}
+              disabled={loadingProvider}
             >
               <Image
                 source={require('../../../assets/images/BusinessInfo/chat.png')}
                 style={styles.chatIcon}
-                resizeMode='cover'
+                resizeMode="cover"
               />
             </TouchableOpacity>
           </View>
@@ -315,7 +361,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     alignSelf: 'center',
-    marginRight: 8
+    marginRight: 8,
   },
   businessDetailsContainer: {
     marginHorizontal: 10,
@@ -361,12 +407,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     // marginLeft: -10,
   },
-  chatIcon : {
+  chatIcon: {
     width: 30,
     height: 30,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
 });
-
-
-

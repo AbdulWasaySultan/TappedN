@@ -1,5 +1,5 @@
-// Filters.tsx
-import React, { useState, useEffect } from 'react';
+// Filters.tsx (fixed version)
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Image,
+  TextInput,
 } from 'react-native';
-import { Image, TextInput } from 'react-native';
-import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList, OutletData } from '../../Navigation/navigation';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
+import { OutletData, ServiceStack } from '../../Navigation/navigation';
 import { FontType } from '../../Components/Constants/FontType';
 import Container from '../../Components/Layout/Container';
 import MainContainer from '../../Components/Layout/MainContainer';
@@ -21,194 +27,277 @@ import {
   getSubCategoriesByCategoryId,
   SubCategoryItem,
 } from '../../utils/constants/serviceCategoryData';
+import { useOutletContext } from '../../Context/OutletContext';
+import {
+  useFilteredOutlets,
+  FilterState,
+} from '../../Context/hooks/usefilteredOutlets';
 
-// Mock data - replace with your actual data fetching
-const ALL_OUTLETS: OutletData[] = [
-  // ... your mock data here
-];
+const bookingOptions = ['Online', 'In Outlet', 'In-Home'];
 
-export default function Filters() {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<string | null>(null);
-  const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
+// Memoized Divider component
+const Divider = React.memo(() => <View style={styles.topDivider} />);
+
+// Memoized Category Item component
+const CategoryItem = React.memo(
+  ({
+    item,
+    isActive,
+    onPress,
+    showIcon = false,
+  }: {
+    item: any;
+    isActive: boolean;
+    onPress: () => void;
+    showIcon?: boolean;
+  }) => (
+    <TouchableOpacity
+      style={[
+        styles.categoryContainer,
+        isActive && styles.selectedCategoryColor,
+      ]}
+      activeOpacity={0.6}
+      onPress={onPress}
+    >
+      {showIcon && item.icon && (
+        <Image source={item.icon} style={styles.icon} />
+      )}
+      <Text style={[styles.name, isActive && styles.selectedText]}>
+        {item.name}
+      </Text>
+    </TouchableOpacity>
+  ),
+);
+
+// Memoized Category List component
+const CategoryList = React.memo(
+  ({
+    data,
+    selectedId,
+    onSelect,
+    showIcon = false,
+  }: {
+    data: any[];
+    selectedId: string | null;
+    onSelect: (id: string) => void;
+    showIcon?: boolean;
+  }) => (
+    <FlatList
+      data={data}
+      horizontal={true}
+      renderItem={({ item }) => (
+        <CategoryItem
+          item={item}
+          isActive={item.id === selectedId}
+          onPress={() => onSelect(item.id)}
+          showIcon={showIcon}
+        />
+      )}
+      keyExtractor={item => item.id}
+      contentContainerStyle={styles.flatListContent}
+      showsHorizontalScrollIndicator={false}
+    />
+  ),
+);
+
+// Memoized Booking Options component
+const BookingOptions = React.memo(
+  ({
+    visible,
+    selectedBooking,
+    onSelect,
+    onClose,
+  }: {
+    visible: boolean;
+    selectedBooking: string;
+    onSelect: (option: string) => void;
+    onClose: () => void;
+  }) => {
+    if (!visible) return null;
+
+    return (
+      <View style={styles.modalView}>
+        {bookingOptions.map((option, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.optionButton,
+              index === bookingOptions.length - 1 && { borderBottomWidth: 0 },
+            ]}
+            onPress={() => {
+              onSelect(option);
+              onClose();
+            }}
+          >
+            <Text
+              style={[
+                styles.optionText,
+                selectedBooking === option && styles.selectedOptionText,
+              ]}
+            >
+              {option}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  },
+);
+
+// Main Filters Component
+const Filters = React.memo(() => {
+  const navigation = useNavigation<NavigationProp<any>>();
+  const { getAllOutlets } = useOutletContext();
+
+  // State
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<
+    string | null
+  >(null);
   const [location, setLocation] = useState<string>('');
-  const [selectedBooking, setSelectedBooking] = useState<string | null>('In Outlet');
+  const [selectedBooking, setSelectedBooking] = useState<string>('In Outlet');
   const [showOptions, setShowOptions] = useState(false);
   const [openNow, setOpenNow] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [filteredResults, setFilteredResults] = useState<OutletData[]>([]);
-  
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'Filters'>>();
-  
-  const bookingOptions = ['Online', 'In Outlet', 'In-Home'];
+  const [isDataLoading, setIsDataLoading] = useState(false); // Only for initial data load
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false); // For filter application
+  const [allOutlets, setAllOutlets] = useState<OutletData[]>([]);
 
-  // Update subcategories when category changes
-  useEffect(() => {
-    if (selectedCategoryId) {
-      const subs = getSubCategoriesByCategoryId(selectedCategoryId);
-      setSubCategories(subs);
-      // Reset selected subcategory when category changes
-      setSelectedSubCategoryId(null);
-    } else {
-      setSubCategories([]);
-    }
-  }, [selectedCategoryId]);
+  // Get subcategories based on selected category
+  const subCategories = useMemo(
+    () =>
+      selectedCategoryId
+        ? getSubCategoriesByCategoryId(selectedCategoryId)
+        : [],
+    [selectedCategoryId],
+  );
 
-  // Apply filters function
-  const applyFilters = async () => {
-    setLoading(true);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      let results = [...ALL_OUTLETS];
-      
-      // Get selected category and subcategory names
-      const selectedCategory = serviceCategories.find(cat => cat.id === selectedCategoryId);
-      const selectedSubCategory = subCategories.find(sub => sub.id === selectedSubCategoryId);
-      
-      // Filter by service category
-      if (selectedCategory) {
-        results = results.filter(outlet =>
-          outlet.outletName.toLowerCase().includes(selectedCategory.name.toLowerCase()) ||
-          outlet.services.some(service =>
-            service.serviceName.toLowerCase().includes(selectedCategory.name.toLowerCase())
-          )
+  // Get selected category and subcategory objects
+  const selectedCategory = useMemo(
+    () => serviceCategories.find(cat => cat.id === selectedCategoryId),
+    [selectedCategoryId],
+  );
+
+  const selectedSubCategory = useMemo(
+    () => subCategories.find(sub => sub.id === selectedSubCategoryId),
+    [subCategories, selectedSubCategoryId],
+  );
+
+  // Build filters object for the hook
+  const filters: FilterState = useMemo(
+    () => ({
+      serviceCategory: selectedCategory?.name || null,
+      subCategory: selectedSubCategory?.name || null,
+      bookingType: selectedBooking,
+      openNow,
+      location,
+      distance: 10,
+    }),
+    [selectedCategory, selectedSubCategory, selectedBooking, openNow, location],
+  );
+
+  // Use the optimized hook (no useEffect inside)
+  const { filteredOutlets } = useFilteredOutlets(allOutlets, filters);
+
+  // Load outlets on mount
+  React.useLayoutEffect(() => {
+    const loadOutlets = async () => {
+      setIsDataLoading(true);
+      try {
+        const data = await getAllOutlets();
+        setAllOutlets(data);
+      } catch (error) {
+        console.error('Error fetching outlet data:', error);
+        Alert.alert(
+          'Error',
+          'Failed to fetch outlet data. Please try again later.',
         );
+      } finally {
+        setIsDataLoading(false);
       }
-      
-      // Filter by sub category
-      if (selectedSubCategory) {
-        results = results.filter(outlet =>
-          outlet.services.some(service =>
-            service.serviceName.toLowerCase().includes(selectedSubCategory.name.toLowerCase())
-          )
-        );
-      }
-      
-      // Filter by booking type
-      if (selectedBooking && selectedBooking !== 'All') {
-        results = results.filter(outlet =>
-          outlet.services.some(service =>
-            service.serviceDetails.serviceBookingType === selectedBooking
-          )
-        );
-      }
-      
-      // Filter by open now
-      if (openNow) {
-        results = results.filter(() => {
-          const hour = new Date().getHours();
-          return hour >= 9 && hour <= 21;
-        });
-      }
-      
-      // Filter by location
-      if (location.trim()) {
-        results = results.filter(outlet =>
-          outlet.outletName.toLowerCase().includes(location.toLowerCase())
-        );
-      }
-      
-      setFilteredResults(results);
-      
-      if (results.length > 0) {
-        navigation.navigate('MyTabs', {
-          outletId: 'filtered-results',
-          // @ts-ignore
-          filteredOutlets: results
-        });
-      } else {
-        Alert.alert('No Results', 'No services found matching your filters. Please try different criteria.');
-      }
-      
-    } catch (error) {
-      console.error('Filter error:', error);
-      Alert.alert('Error', 'Failed to apply filters. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Clear all filters
-  const clearAllFilters = () => {
+    };
+    loadOutlets();
+  }, [getAllOutlets]);
+
+  // Reset selected subcategory when category changes
+  const handleSelectCategory = useCallback((categoryId: string) => {
+    setSelectedCategoryId(prev => (prev === categoryId ? null : categoryId));
+    setSelectedSubCategoryId(null);
+  }, []);
+
+  const handleSelectSubCategory = useCallback((subCategoryId: string) => {
+    setSelectedSubCategoryId(prev =>
+      prev === subCategoryId ? null : subCategoryId,
+    );
+  }, []);
+
+  const handleSelectOption = useCallback((option: string) => {
+    setSelectedBooking(option);
+  }, []);
+
+  const clearAllFilters = useCallback(() => {
     setSelectedCategoryId(null);
     setSelectedSubCategoryId(null);
     setSelectedBooking('In Outlet');
     setLocation('');
     setOpenNow(false);
-    Alert.alert('Filters Cleared', 'All filters have been reset.');
-  };
+  }, []);
 
-  const handleSelectOption = (option: string) => {
-    setSelectedBooking(option);
-    setShowOptions(false);
-  };
+  const applyFilters = useCallback(async () => {
+    setIsApplyingFilters(true);
 
-  const handleSelectCategory = (categoryId: string) => {
-    setSelectedCategoryId(prevId => (prevId === categoryId ? null : categoryId));
-  };
+    // Simulate a small delay for better UX (optional)
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-  const handleSelectSubCategory = (subCategoryId: string) => {
-    setSelectedSubCategoryId(prevId => (prevId === subCategoryId ? null : subCategoryId));
-  };
+    if (filteredOutlets.length > 0) {
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.navigate('HomeTabs', {
+          screen: 'Home',
+          params: { filteredOutlets: filteredOutlets || [] },
+        });
+      }
+    } else {
+      Alert.alert(
+        'No Results',
+        'No services found matching your filters. Please try different criteria.',
+      );
+    }
 
-  const renderCategoryItem = ({ item }: { item: typeof serviceCategories[0] }) => {
-    const isActive = item.id === selectedCategoryId;
-    
-    return (
-      <TouchableOpacity
-        style={[
-          styles.categoryContainer,
-          isActive && styles.selectedCategoryColor,
-        ]}
-        activeOpacity={0.6}
-        onPress={() => handleSelectCategory(item.id)}
-      >
-        <Text style={[styles.name, isActive && styles.selectedText]}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+    setIsApplyingFilters(false);
+  }, [filteredOutlets, navigation]);
 
-  const renderSubCategoryItem = ({ item }: { item: SubCategoryItem }) => {
-    const isActive = item.id === selectedSubCategoryId;
-    
-    return (
-      <TouchableOpacity
-        style={[
-          styles.categoryContainer,
-          isActive && styles.selectedCategoryColor,
-        ]}
-        activeOpacity={0.6}
-        onPress={() => handleSelectSubCategory(item.id)}
-      >
-        {item.icon && <Image source={item.icon} style={styles.icon} />}
-        <Text style={[styles.name, isActive && styles.selectedText]}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+  // Determine button text based on what's happening
+  const getButtonText = useMemo(() => {
+    if (isDataLoading) return 'Loading Outlets...';
+    if (isApplyingFilters) return 'Applying Filters...';
+    return 'Apply Filters';
+  }, [isDataLoading, isApplyingFilters]);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
       <Container style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.button}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.button}
+          >
             <Image
               source={require('../../assets/images/Others/backButton.png')}
               style={styles.backButtonIcon}
               resizeMode="contain"
+              // ../../assets/images/Others/backButton.png
             />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Filters</Text>
           </View>
-          <TouchableOpacity onPress={clearAllFilters} style={styles.clearButton}>
+          <TouchableOpacity
+            onPress={clearAllFilters}
+            style={styles.clearButton}
+          >
             <Text style={styles.clearText}>Clear All</Text>
           </TouchableOpacity>
         </View>
@@ -217,30 +306,27 @@ export default function Filters() {
           {/* Service Category */}
           <View style={styles.portionContainer}>
             <Text style={styles.boldText}>Service Category</Text>
-            <FlatList
+            <CategoryList
               data={serviceCategories}
-              horizontal={true}
-              renderItem={renderCategoryItem}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.flatListContent}
-              showsHorizontalScrollIndicator={false}
+              selectedId={selectedCategoryId}
+              onSelect={handleSelectCategory}
             />
           </View>
 
           <Divider />
 
-          {/* Sub Category - Only show if a category is selected */}
+          {/* Sub Category */}
           {selectedCategoryId && subCategories.length > 0 && (
             <>
               <View style={styles.portionContainer}>
-                <Text style={[styles.boldText, { marginBottom: 20 }]}>Sub Category</Text>
-                <FlatList
+                <Text style={[styles.boldText, { marginBottom: 20 }]}>
+                  Sub Category
+                </Text>
+                <CategoryList
                   data={subCategories}
-                  horizontal={true}
-                  renderItem={renderSubCategoryItem}
-                  keyExtractor={item => item.id}
-                  contentContainerStyle={styles.flatListContent}
-                  showsHorizontalScrollIndicator={false}
+                  selectedId={selectedSubCategoryId}
+                  onSelect={handleSelectSubCategory}
+                  showIcon={true}
                 />
               </View>
               <Divider />
@@ -249,7 +335,9 @@ export default function Filters() {
 
           {/* Booking Type */}
           <View style={styles.portionContainer}>
-            <Text style={[styles.boldText, { marginTop: 10, marginBottom: 15 }]}>
+            <Text
+              style={[styles.boldText, { marginTop: 10, marginBottom: 15 }]}
+            >
               Booking Type
             </Text>
             <TouchableOpacity
@@ -264,28 +352,12 @@ export default function Filters() {
                 resizeMode="contain"
               />
             </TouchableOpacity>
-
-            {showOptions && (
-              <View style={styles.modalView}>
-                {bookingOptions.map((option, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.optionButton,
-                      index === bookingOptions.length - 1 && { borderBottomWidth: 0 },
-                    ]}
-                    onPress={() => handleSelectOption(option)}
-                  >
-                    <Text style={[
-                      styles.optionText,
-                      selectedBooking === option && styles.selectedOptionText
-                    ]}>
-                      {option}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+            <BookingOptions
+              visible={showOptions}
+              selectedBooking={selectedBooking}
+              onSelect={handleSelectOption}
+              onClose={() => setShowOptions(false)}
+            />
           </View>
 
           <Divider />
@@ -295,10 +367,18 @@ export default function Filters() {
             <View style={styles.openNowContainer}>
               <Text style={styles.boldText}>Open Now</Text>
               <TouchableOpacity
-                style={[styles.toggleButton, openNow && styles.toggleButtonActive]}
-                onPress={() => setOpenNow(!openNow)}
+                style={[
+                  styles.toggleButton,
+                  openNow && styles.toggleButtonActive,
+                ]}
+                onPress={() => setOpenNow(prev => !prev)}
               >
-                <View style={[styles.toggleCircle, openNow && styles.toggleCircleActive]} />
+                <View
+                  style={[
+                    styles.toggleCircle,
+                    openNow && styles.toggleCircleActive,
+                  ]}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -307,7 +387,9 @@ export default function Filters() {
 
           {/* Location */}
           <View style={styles.portionContainer}>
-            <Text style={[styles.boldText, { marginTop: 20, marginBottom: 30 }]}>
+            <Text
+              style={[styles.boldText, { marginTop: 20, marginBottom: 30 }]}
+            >
               Location
             </Text>
             <View style={styles.row}>
@@ -327,32 +409,29 @@ export default function Filters() {
             </Text>
           </View>
 
-          {/* Filter Button */}
+          {/* Filter Button - Now shows correct text */}
           <OrangeButton
-            title={loading ? "Applying Filters..." : "Apply Filters"}
+            title={getButtonText}
             onPress={applyFilters}
             textStyle={{ fontSize: 20, fontWeight: '700' }}
+            disabled={isDataLoading || isApplyingFilters} // Optional: disable button during operations
           />
-          
-          {filteredResults.length > 0 && (
+
+          {filteredOutlets.length > 0 && !isDataLoading && (
             <Text style={styles.resultsText}>
-              Found {filteredResults.length} outlets
+              Found {filteredOutlets.length} outlets
             </Text>
           )}
         </MainContainer>
       </Container>
     </ScrollView>
   );
-}
+});
 
-const Divider = () => <View style={styles.topDivider} />;
+export default Filters;
 
-// Styles remain the same as before...
-
-// Styles remain the same as before...
-
+// Styles remain EXACTLY the same
 const styles = StyleSheet.create({
-  // ... (keep your existing styles)
   scrollView: {
     backgroundColor: '#FFFFFF',
     flex: 1,

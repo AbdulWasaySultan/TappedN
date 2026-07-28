@@ -1,5 +1,6 @@
 // import { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigatorScreenParams } from '@react-navigation/native';
 
 //Four ways to pass data to a screen
 //1. Props (children) → when parent already fetched the data, and you want to avoid another API call.
@@ -7,29 +8,23 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 //3. Route params (ID only) → when you want the screen to always fetch the latest version.
 //4. Fetch inside screen → for standalone screens, not tightly linked to navigation flow.
 
-// **CHANGE 1: Fixed ServicesData type - removed array notation**
+// ============== DATA TYPES ==============
 export type OutletData = {
   id: string;
   outletName: string;
-  outletBgImage: string; // always from API
-  outletIcon: string | number; // API string OR require() number
+  outletBgImage: string;
+  outletIcon: string | null | undefined;
   rating: number;
-
-  // Service provider info (for messaging)
   serviceProviderName?: string;
-  serviceProviderId : string;
-
-  services: ServicesData[]; // Array of services
+  serviceProviderId: string;
+  services: ServicesData[];
   photos: Photo[];
   businessDetails: BusinessDetails[];
-
-  outletRating: OutletRating; // "id": 1,// "ratingStars": 5, // "reviews": 239
+  outletRating: OutletRating;
   reviews: allReviews[];
-  // serviceReviews: ServiceReviews[];
 };
 
 export type ServicesData = {
-  // props for service screen
   id: string;
   serviceName: string;
   serviceImage: string;
@@ -37,11 +32,11 @@ export type ServicesData = {
   serviceDetails: ServiceDetail;
   serviceRating: OutletRating;
 };
-// Extra details for a service
+
 export type ServiceDetail = {
   id: string;
   serviceDuration: string;
-  serviceBookingType : string;
+  serviceBookingType: string;
 };
 
 export type Photo = {
@@ -61,7 +56,6 @@ export type OutletRating = {
   reviews: number;
 };
 
-
 export type allReviews = {
   id: string;
   name: string;
@@ -69,274 +63,127 @@ export type allReviews = {
   description: string;
   time: string;
   profileImage: string;
-
   serviceId: string | null;
-  // outletRating: OutletRating[];
 };
 
+// ============== COMMON PARAMS ==============
+type ServiceProvider = {
+  uid: string;
+  name: string;
+  profileImage: string;
+  outletName?: string;
+};
 
-// Service Reviews ka array api response mein is liye nhi hai kyunke 
-// ham ne outlet reviews ko services ki id ki base pr filter krke 
-// service reviews mein daala ha kyunke agar kisi user 
-// ne kisi service ko  general review dedia jese best location to ye
-// to usne outlet ki tareef ki na to isliye aesa kiya ha
-// export type ServiceReviews = {
-//   id: string;
-//   serviceId: string; // to know which service this review belongs to
-//   outletId: string;  // to cross-check if needed
-//   name: string;
-//   ratingStars: number;
-//   description: string;
-//   time: string;
-//   profileImage: string;
-// };
+type OutletParams = { outletId: string };
+type ServiceParams = { outletId: string; serviceId: string };
 
+// ============== NAVIGATOR PARAMS ==============
+export type RootStack = {
+  Splash: undefined;
+  AuthStack: undefined;
+  HomeTabs: undefined;
+  Loading: undefined;  
+};
 
-export type MyTabsParamList = {
-  Services: {
-    // outletData: OutletData; // This contains everything needed including services and photos
-    // serviceReviews: ServiceReviews[];
-    outletId : string;
-  };
-  BusinessInfo: {
-    // outletData: OutletData;
-    //     serviceReviews: ServiceReviews[];
-    outletId : string;
-  };
-  Reviews: {
-    // outletData: OutletData; // Reviews might need outlet data for context
-    // outletReviews: OutletReview[];
-    outletId : string;
-  };
-}; 
-export type HomeTabsParamList = {
-  Home: undefined;
+export type AuthStack = {
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { email: string };
+  OTP: { email: string };
+};
+
+export type HomeTabs = {
+  Home: {filteredOutlets?: OutletData[] | undefined};
   BookingsDashboard: undefined;
   Messages: undefined;
   Notifications: undefined;
   Settings: undefined;
+  ServiceStack: { screen: keyof ServiceStack; params?: any }; // ✅ Add this line
+
 };
 
-// ServiceStack nested navigator param list
-export type ServiceStackParamList = {
-  Filters: undefined;
+export type ServiceStack = {
   Handyman: undefined;
   ViewAll: undefined;
-  Estheticians: undefined;
+  Estheticians: OutletParams;
   MusicStudio: undefined;
   Barbers: undefined;
   Yoga: undefined;
+  Filters: undefined;
+
+  // HomeTabs: { screen: keyof HomeTabs; params?: { filteredOutlets?: OutletData[] } };
+  // Home : { screen: keyof HomeTabs; params?: { filteredOutlets?: OutletData[] } };
+};
+
+export type OutletTabs = {
+  MyTabs: OutletParams;
+  Services: OutletParams;
+  BusinessInfo: OutletParams;
+  Reviews: OutletParams;
+  ServiceDetails: ServiceParams;
+  ServiceStack: { screen: keyof ServiceStack; params: ServiceParams };
   MyReview: undefined;
-  ServiceDetails: { outletId: string; serviceId: string };
-  BookAppointment: { outletId: string; serviceId: string };
+  BookAppointment: ServiceParams;
   AppointmentConfirmed: undefined;
-  MyTabs: { outletId: string };
+  // ServiceStack: { screen: keyof ServiceStack; params: ServiceParams };
 };
 
-// HomeStack navigator param list (includes both direct screens and nested ServiceStack)
-export type HomeStackParamList = {
-  Home: undefined;
+export type HomeStack = {
   HomeTabs: undefined;
-  ServiceStack: { screen: keyof ServiceStackParamList; params?: any };
+  ServiceStack: { screen: keyof ServiceStack; params?: any };
   ChangePassword: undefined;
   ProfileSettings: undefined;
   PrivacyPolicy: undefined;
   Subscription: undefined;
-  MessagingScreen: { chatId: string; serviceProvider: { uid: string; name: string; profileImage: string; outletName?: string } };
+  OutletTabs: NavigatorScreenParams<OutletTabs>; 
+  MessagingScreen: {
+    chatId: string;
+    providerId: string;
+  };
 };
 
-// Define a type for your Root Stack Navigator screens and their parameters
-export type RootStackParamList = {
-  Splash : undefined
-  Login: undefined;
-  Register: undefined;
-  ForgotPassword: undefined;
-  ResetPassword: {email: string};
-  OTP: {email: string};
-  Home: undefined;
-  Handyman: undefined;
-  Estheticians: undefined;
-  MusicStudio: undefined;
-  Barbers: undefined;
-  Yoga: undefined;
-  ViewAll: undefined;
-  Filters: undefined;
-  WindowService: undefined;
-  HairTreatment: undefined;
-  BookAppointment : {
-    outletId : string;
-    serviceId : string;
+// ============== SCREEN PROPS (AUTO-GENERATED) ==============
+// Auth Stack
+export type LoginScreenProps = NativeStackScreenProps<AuthStack, 'Login'>;
+export type RegisterScreenProps = NativeStackScreenProps<AuthStack, 'Register'>;
+export type OTPScreenProps = NativeStackScreenProps<AuthStack, 'OTP'>;
+export type ResetPasswordScreenProps = NativeStackScreenProps<AuthStack, 'ResetPassword'>;
+export type ForgotPasswordScreenProps = NativeStackScreenProps<AuthStack, 'ForgotPassword'>;
 
-  };
-  AppointmentConfirmed : undefined;
+// Home Tabs
+export type HomeScreenProps = NativeStackScreenProps<HomeTabs, 'Home'>;
+export type BookingsDashboardScreenProps = NativeStackScreenProps<HomeTabs, 'BookingsDashboard'>;
+export type NotificationsScreenProps = NativeStackScreenProps<HomeTabs, 'Notifications'>;
+export type SettingsScreenProps = NativeStackScreenProps<HomeTabs, 'Settings'>;
+export type MessagesScreenProps = NativeStackScreenProps<HomeTabs, 'Messages'>;
 
-  MyReview: undefined;
-// In your navigation types file, update MyTabs:
+// Service Stack
+export type HandymanScreenProps = NativeStackScreenProps<ServiceStack, 'Handyman'>;
+export type ViewAllScreenProps = NativeStackScreenProps<ServiceStack, 'ViewAll'>;
+export type EstheticiansScreenProps = NativeStackScreenProps<ServiceStack, 'Estheticians'>;
+export type MusicStudioScreenProps = NativeStackScreenProps<ServiceStack, 'MusicStudio'>;
+export type BarbersScreenProps = NativeStackScreenProps<ServiceStack, 'Barbers'>;
+export type YogaScreenProps = NativeStackScreenProps<ServiceStack, 'Yoga'>;
+export type FiltersScreenProps = NativeStackScreenProps<ServiceStack, 'Filters'>;
+export type ServiceDetailsScreenProps = NativeStackScreenProps<OutletTabs, 'ServiceDetails'>;
+export type BookAppointmentScreenProps = NativeStackScreenProps<OutletTabs, 'BookAppointment'>;
+export type AppointmentConfirmedScreenProps = NativeStackScreenProps<OutletTabs, 'AppointmentConfirmed'>;
 
-  // ... other routes
-  MyTabs: { 
-    outletId: string;
-    filteredOutlets?: OutletData[]; // Optional filtered results
-  };
-  // ServiceDetails: { service: ServicesData; outlet: OutletData; serviceReviews: ServiceReviews[]};
-   ServiceDetails: {outletId : string, serviceId : string};
+// Outlet Tabs
+export type MyTabsScreenProps = NativeStackScreenProps<OutletTabs, 'MyTabs'>;
+export type ServiceScreenProps = NativeStackScreenProps<OutletTabs, 'Services'>;
+export type BusinessInfoScreenProps = NativeStackScreenProps<OutletTabs, 'BusinessInfo'>;
+export type ReviewsScreenProps = NativeStackScreenProps<OutletTabs, 'Reviews'>;
+export type MyReviewScreenProps = NativeStackScreenProps<OutletTabs, 'MyReview'>;
 
-  HomeTabs: undefined;
-  ChangePassword: undefined;
-  ProfileSettings: undefined;
-  PrivacyPolicy: undefined;
-  Subscription: undefined;
-  Loading: undefined;
-  MessagingScreen: { chatId: string; serviceProvider: { uid: string; name: string; profileImage: string; outletName?: string } };
+// Home Stack
+export type MessagingScreenProps = NativeStackScreenProps<HomeStack, 'MessagingScreen'>;
+export type ChangePasswordScreenProps = NativeStackScreenProps<HomeStack, 'ChangePassword'>;
+export type ProfileSettingsScreenProps = NativeStackScreenProps<HomeStack, 'ProfileSettings'>;
+export type PrivacyPolicyScreenProps = NativeStackScreenProps<HomeStack, 'PrivacyPolicy'>;
+export type SubscriptionScreenProps = NativeStackScreenProps<HomeStack, 'Subscription'>;
 
-};
-
-// Screen props types
-export type LoginScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Login'
->;
-export type RegisterScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Register'
->;
-export type OTPScreenProps = NativeStackScreenProps<RootStackParamList, 'OTP'>;
-export type ResetPasswordScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ResetPassword'
->;
-export type HomeScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Home'
->;
-export type WindowServiceScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'WindowService'
->;
-export type HairTreatmentScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'HairTreatment'
->;
-export type ForgotPasswordScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ForgotPassword'
->;
-export type HandymanScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Handyman'
->;
-export type ViewAllScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ViewAll'
->;
-export type EstheticiansScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Estheticians'
->;
-export type MusicStudioScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'MusicStudio'
->;
-export type BarbersScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Barbers'
->;
-export type YogaScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Yoga'
->;
-export type MyTabsScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'MyTabs'
->;
-export type ServiceScreenProps = NativeStackScreenProps<
-  MyTabsParamList,
-  'Services'
->;
-export type BusinessInfoScreenProps = NativeStackScreenProps<
-  MyTabsParamList,
-  'BusinessInfo'
->;
-export type ReviewsScreenProps = NativeStackScreenProps<
-  MyTabsParamList,
-  'Reviews'
->;
-export type ServiceDetailsScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ServiceDetails'
->;
-
-export type BookAppointmentScreenProps = NativeStackScreenProps<
-RootStackParamList,
-'BookAppointment'
->;
-
-export type AppointmentConfirmedScreenProps = NativeStackScreenProps<
-RootStackParamList,
-'AppointmentConfirmed'
->;
-
-export type HomeTabsScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'HomeTabs'
->;
-
-// export type HomeScreenProps = NativeStackScreenProps<
-//   HomeTabsParamList,
-//   'Home'
-// >;  
-
-export type BookingsDashboardScreenProps = NativeStackScreenProps<
-  HomeTabsParamList,
-  'BookingsDashboard'
->;
-// export type MessagesScreenProps = NativeStackScreenProps<
-//   HomeTabsParamList,
-//   'Messages'
-// >;
-export type NotificationsScreenProps = NativeStackScreenProps<
-  HomeTabsParamList,
-  'Notifications'
->;
-export type SettingsScreenProps = NativeStackScreenProps<
-  HomeTabsParamList,
-  'Settings'
->;
-
-export type ChangePasswordScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ChangePassword'
->;
-export type ProfileSettingsScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ProfileSettings'
->;
-
-export type PrivacyPolicyScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'PrivacyPolicy'
->;
-export type SubscriptionScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Subscription'
->;
-
-export type LoadingScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Loading'
->;
-
-export type MessagingScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'MessagingScreen'
->;
-
-export type MessagesScreenProps = NativeStackScreenProps<
-  HomeTabsParamList,
-  'Messages'
->;  
-
-export type SplashScreenProps = NativeStackScreenProps<
-HomeTabsParamList,
-'Messages'
->;
+// Root
+export type LoadingScreenProps = NativeStackScreenProps<RootStack, 'Loading'>;
+export type SplashScreenProps = NativeStackScreenProps<RootStack, 'Splash'>;

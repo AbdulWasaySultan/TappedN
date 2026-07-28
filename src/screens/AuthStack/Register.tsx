@@ -12,7 +12,6 @@ import {
 import { useState } from 'react';
 import { ImageBackground } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
 import { ImageStyle } from 'react-native';
 import CustomTextField from '../../Components/Form/TextField';
 import {
@@ -27,18 +26,19 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import { setUser } from '../../redux/slices/userData/userSlice';
+import { setUser } from '../../redux/slices/userSlice';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../redux/store/store';
-import { authInstance, firestoreInstance } from '../../Firebase/firebaseConfig';
-import { addDoc, collection } from '@react-native-firebase/firestore';
+import { authInstance, firestoreInstance } from '../../services/firebase/firebaseConfig';
+
+import { AuthStack } from '../../Navigation/navigation';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 const isLargeScreen = height > 850;
 
 export default function Register() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AuthStack>>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>('');
   const [FullNameIsFocused, setFullNameIsFocused] = useState<boolean>(false);

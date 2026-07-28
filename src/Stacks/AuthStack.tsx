@@ -7,8 +7,6 @@ import ForgotPassword from '../screens/AuthStack/ForgotPassword';
 import ResetPassword from '../screens/AuthStack/ResetPassword';
 import OTP from '../screens/AuthStack/OTP';
 
-import { RootStackParamList } from '../Navigation/navigation';
-
 const Stack = createNativeStackNavigator();
 
 export default function AuthStack() {

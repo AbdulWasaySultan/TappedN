@@ -7,7 +7,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import { RFValue } from 'react-native-responsive-fontsize';
+// import { RFValue } from 'react-native-responsive-fontsize';
 import { FontType } from '../../../../Components/Constants/FontType';
 import { getSafeImageSource } from '../../../../utils/imageSource';
 

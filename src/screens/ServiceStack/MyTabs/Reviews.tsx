@@ -1,24 +1,15 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  FlatList,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, Image, FlatList } from 'react-native';
 import { FontType } from '../../../Components/Constants/FontType';
 import { useState } from 'react';
-import { ImageSourcePropType } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import {
-  MyTabsParamList,
-  RootStackParamList,
-} from '../../../navigation/navigation';
 import OrangeButton from '../../../Components/Buttons/OrangeButton';
-import { OutletData, OutletRating, allReviews } from '../../../navigation/navigation';
-// import { Reviews } from '../../navigation/navigation';
-import { useOutletContext } from '../../../Context/API/Outlet/OutletContext';
+import {
+  OutletRating,
+  OutletTabs,
+  allReviews,
+} from '../../../navigation/navigation';
+import { useOutletContext } from '../../../Context/OutletContext';
 import SafeImage from '../../../Components/Global/SafeImage';
 
 function formattedTime(dateString: string) {
@@ -46,8 +37,8 @@ type ReviewsComponentProps = {
 export default function Reviews({ outletId }: ReviewsComponentProps) {
   //   /* NavigationProp<RootStackParamList> → generic, looser typing. Good for quick setup.*/
   //   /* NativeStackNavigationProp<RootStackParamList, "ScreenName"> → stricter, screen-specific typing. Best practice in TypeScript*/
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  // const route = useRoute<RouteProp<MyTabsParamList, 'Reviews'>>();
+  const navigation = useNavigation<NavigationProp<OutletTabs>>();
+  // const route = useRoute<RouteProp<OutletTabs, 'Reviews'>>();
   // const {outletData, outletReviews} = route.params
 
   const { getOutletById } = useOutletContext();
@@ -105,7 +96,7 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
                 styles.ratingProgressBaarFillContainer,
                 { width: `${progressBarWidth}%` },
               ]}
-            ></View>
+            />
           </View>
         </View>
       </View>
@@ -123,7 +114,6 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
             fallbackSource={require('../../../assets/images/Review/profileImage.png')}
             resizeMode="cover"
             style={styles.profileImage}
-            deferUntilInteractions
           />
         </View>
 
@@ -170,7 +160,6 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
     //     />
     //   </View>
 
-    //
     <FlatList
       data={outletData?.reviews ?? []} // ensures array, never undefined
       keyExtractor={item => item.id} //reviewid
@@ -195,11 +184,14 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
       }
       // Use ListFooterComponent for the button at the BOTTOM
       ListFooterComponent={
-        <OrangeButton
-          title="Write a Review"
-          style={styles.postReviewButton}
-          onPress={() => navigation.navigate('MyReview')}
-        />
+        <>
+          <OrangeButton
+            title="Write a Review"
+            style={styles.postReviewButton}
+            onPress={() => navigation.navigate('MyReview')}
+          />
+          <View style={styles.bottomPadding} />
+        </>
       }
       showsVerticalScrollIndicator={false}
     />
@@ -219,7 +211,7 @@ export default function Reviews({ outletId }: ReviewsComponentProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: 'green',
     alignItems: 'center',
   },
   mainContainer: {
@@ -290,7 +282,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     // backgroundColor : 'red',
     marginVertical: 8,
-    marginTop : 30
+    marginTop: 30,
   },
   recentReviewsTitle: {
     fontSize: FontType.xlarge,
@@ -304,7 +296,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingVertical: 0,
     flexDirection: 'row',
-    marginTop : 10
+    marginTop: 10,
   },
   reviewHeaderRow: {
     flexDirection: 'row',
@@ -323,7 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     marginRight: 5,
-    marginLeft : 3
+    marginLeft: 3,
     // backgroundColor: 'purple',
   },
   profileImage: {
@@ -375,11 +367,14 @@ const styles = StyleSheet.create({
     // backgroundColor : 'blue'
   },
   postReviewButton: {
-    marginTop: 40,
+    marginTop: 20,
     marginBottom: 50,
     width: '85%',
     alignItems: 'center',
     alignSelf: 'center',
+  },
+  bottomPadding: {
+    height: 20, // Creates 20px spacing at the bottom
   },
   message: {
     width: '94%',

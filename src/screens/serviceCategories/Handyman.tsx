@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,29 +10,49 @@ import {
   Keyboard,
   Dimensions,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import Container from '../../Components/Layout/Container';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
 import { FontType } from '../../Components/Constants/FontType';
-import { useState } from 'react';
 import BackButton from '../../Components/Global/BackButton/BackButton';
-import { handymanSubCategories } from '../../utils/constants/serviceCategoryData';
+import { handymanSubCategories, SubCategoryItem } from '../../utils/constants/serviceCategoryData';
+import { ServiceStack } from '../../Navigation/navigation';
+import { useOutletContext } from '../../Context/OutletContext';
+import Loading from '../../Components/Global/Loading';
 
 const { width, height } = Dimensions.get('window');
 
 export default function Handyman() {
-  const route = useRoute<RouteProp<RootStackParamList, 'Handyman'>>();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<ServiceStack, 'Handyman'>>();
+  const navigation = useNavigation<NavigationProp<any>>();
+  const { getAllOutlets } = useOutletContext();
+
   const [searchServices, setSearchServices] = useState<string>('');
   const [filteredService, setFilteredService] = useState(handymanSubCategories);
+  const [allOutlets, setAllOutlets] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Fetch outlets when component mounts
+  useEffect(() => {
+    fetchOutlets();
+  }, []);
+
+  const fetchOutlets = async () => {
+    try {
+      setLoading(true);
+      const outletsData = await getAllOutlets();
+      setAllOutlets(outletsData);
+    } catch (error) {
+      console.error('Error fetching outlets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (text: string) => {
     setSearchServices(text);
-
-    /*.trim() is primarily used as a JavaScript String method to remove whitespace
- characters from both ends (leading and trailing) of a string.  */
     if (text.trim() === '') {
       setFilteredService(handymanSubCategories);
     } else {
@@ -42,28 +62,72 @@ export default function Handyman() {
       setFilteredService(filtered);
     }
   };
-  const renderItem = ({ item }: { item: any }) => {
+
+  // Filter outlets by service name
+  const filterOutletsByService = (serviceName: string) => {
+    try {
+      const filtered = allOutlets.filter(outlet =>
+        outlet.services.some((service: any) =>
+          service.serviceName.toLowerCase().includes(serviceName.toLowerCase()),
+        ),
+      );
+      return filtered;
+    } catch (error) {
+      console.error('Error filtering outlets:', error);
+      return [];
+    }
+  };
+
+  // Handle service press - navigate to Home with filtered outlets
+  const handleServicePress = async (serviceName: string) => {
+    setLoading(true);
+    const filteredOutlets = filterOutletsByService(serviceName);
+    
+    if (filteredOutlets.length > 0) {
+      navigation.navigate('HomeTabs', {
+        screen: 'Home',
+        params: {
+          filteredOutlets: filteredOutlets,
+        },
+      });
+    } else {
+      Alert.alert('No Results', `No outlets found for ${serviceName}`);
+    }
+    setLoading(false);
+  };
+
+  const renderItem = ({ item }: { item: SubCategoryItem }) => {
     return (
-      // <View style={styles.mainContainer}>
       <TouchableOpacity
         style={styles.serviceContainer}
-        // onPress={() => navigation.navigate('ServiceDetails')}
+        onPress={() => handleServicePress(item.name)}
       >
         <Image
-          source={item.image}
+          source={item.icon}  // Changed from item.image to item.icon
           style={styles.serviceImage}
-          resizeMode="contain"
+          resizeMode="cover"
         />
         <Text numberOfLines={1} style={styles.serviceName}>
           {item.name}
         </Text>
       </TouchableOpacity>
-      // </View>
     );
   };
 
+  // Show loading indicator while fetching data
+  if (loading) {
+    return (
+      <Container style={{ backgroundColor: '#f9f9f9' }}>
+        <BackButton />
+        <View style={styles.topContainer}>
+          <Text style={styles.topContainerText}>Handyman</Text>
+        </View>
+        <Loading />
+      </Container>
+    );
+  }
+
   return (
-    // <SafeAreaView>
     <Container style={{ backgroundColor: '#f9f9f9' }}>
       <BackButton />
       <View style={styles.topContainer}>
@@ -74,10 +138,8 @@ export default function Handyman() {
           placeholder="Search in Handyman"
           placeholderTextColor="#42526E"
           style={styles.input}
-          // placeholderTextColor='#000'
-          // placeholderStyle={styles.searchInputPlaceholder}
           value={searchServices}
-          onChangeText={searchServices => handleSearch(searchServices)}
+          onChangeText={handleSearch}
           onSubmitEditing={() => handleSearch(searchServices)}
           returnKeyType="search"
           autoCapitalize="none"
@@ -93,7 +155,6 @@ export default function Handyman() {
           />
         </TouchableOpacity>
       </View>
-      {/*  searchView closed here */}
 
       <View style={styles.mainContainer}>
         <FlatList
@@ -101,46 +162,22 @@ export default function Handyman() {
           data={filteredService}
           renderItem={renderItem}
           numColumns={3}
-          // scrollEnabled={false}
           columnWrapperStyle={{
             justifyContent: 'space-between',
             marginBottom: 100,
           }}
           showsVerticalScrollIndicator={false}
         />
-
-        {/* <FlatList
-          keyExtractor={item => item.id.toString()}
-          data={serviceDataTwo}
-          renderItem={renderItem}
-          columnWrapperStyle={{ justifyContent: 'space-between' }}
-          showsHorizontalScrollIndicator={false}
-        />
-
-        <FlatList
-          keyExtractor={item => item.id.toString()}
-          data={serviceDataThree}
-          renderItem={renderItem}
-          columnWrapperStyle={{ justifyContent: 'space-between' }}
-          showsHorizontalScrollIndicator={false}
-        /> */}
       </View>
     </Container>
-    // </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  // safeArea:{
-  //   flex: 1,
-  //   backgroundColor: '#FFFFFF',
-  // },
 
+const styles = StyleSheet.create({
   topContainer: {
     width: '90%',
     height: 60,
     marginTop: 150,
-    // marginTop : Dimensions.get('window').height * 0.1,
-    // backgroundColor : 'red'
   },
   topContainerText: {
     fontSize: FontType.titleBold,
@@ -189,7 +226,6 @@ const styles = StyleSheet.create({
     right: 16,
     top: 16,
     padding: 10,
-    // backgroundColor: '#000',
   },
   searchIcon: {
     width: 45,
@@ -204,12 +240,11 @@ const styles = StyleSheet.create({
     marginTop: 30,
     justifyContent: 'space-between',
     alignItems: 'center',
-    // backgroundColor : 'pink',
     height: '60%',
   },
   serviceContainer: {
     width: '25%',
-    height: 90,
+    height: 85,
     borderRadius: 45,
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -222,8 +257,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 40,
-    // marginTop: 24,
-    // marginLeft: 3,
     alignSelf: 'center',
     marginVertical: 25,
   },
@@ -236,16 +269,4 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     textAlign: 'center',
   },
-  // suggestionText: {
-  //   fontSize: 16,
-  //   fontWeight: 'bold',
-  //   color: '#000',
-
-  //   marginHorizontal: 10,
-  //   // borderBottomWidth: 1,
-  //   borderBottomColor: '#000',
-  //   padding: 20,
-  //   backgroundColor: '#fff',
-  //   flex: 1,
-  // },
 });

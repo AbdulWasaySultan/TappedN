@@ -1,3 +1,4 @@
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface UserState {
@@ -8,8 +9,8 @@ export interface UserState {
   contactNo: string;
   profileImage: string;
   isLoggedIn: boolean;
-
-    location?: {           // For the location feature
+  role: 'consumer' | 'provider' | null; // ✅ Add role
+  location?: {
     latitude: number;
     longitude: number;
     updatedAt: any;
@@ -24,13 +25,14 @@ const initialState: UserState = {
   contactNo: '',
   profileImage: '',
   isLoggedIn: false,
-
-    location : {           // For the location feature
+  role: null, // ✅ Initialize as null
+  location: {
     latitude: 0,
     longitude: 0,
     updatedAt: ''
   }
 };
+
 
 const userSlice = createSlice({
   name: 'user',
@@ -39,6 +41,9 @@ const userSlice = createSlice({
     setUser: (state, action: PayloadAction<Partial<UserState>>) => {
       return { ...state, ...action.payload, isLoggedIn: true };
     },
+    setUserRole: (state, action: PayloadAction<'consumer' | 'provider'>) => {
+      state.role = action.payload;
+    },
     clearUser: () => initialState,
     updateProfile: (state, action: PayloadAction<Partial<UserState>>) => {
       return { ...state, ...action.payload, isLoggedIn: true };
@@ -46,5 +51,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, clearUser, updateProfile } = userSlice.actions;
+
+export const { setUser, clearUser, updateProfile, setUserRole } = userSlice.actions;
 export default userSlice.reducer;

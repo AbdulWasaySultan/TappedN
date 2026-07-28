@@ -1,13 +1,11 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { OutletData } from '../../../Navigation/navigation';
-import { fetchAllOutlets } from '../../../API/api';
-import { fetchOutletById } from '../../../API/api';
+import { OutletData } from '../Navigation/navigation';
+import { fetchAllOutlets } from '../services/API/api';
 
 type OutletContextType = {
   outlets: OutletData[];
   getOutletById: (id: string) => OutletData | undefined;
-  fetchAllOutlets: () => Promise<OutletData[]>;
+  getAllOutlets: () => Promise<OutletData[]>;
   loading: boolean;
   error: string | null;
 };
@@ -24,31 +22,48 @@ export const OutletContextProvider = ({
   const [outlets, setOutlets] = useState<OutletData[]>([]);
 
   useEffect(() => {
-    loadOutlets();
+    // loadOutlets();
+    getAllOutlets();
   }, []);
 
- const loadOutlets = async () => {
+  // const loadOutlets = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await fetchAllOutlets();
+  //     setOutlets(data);
+  //     setError(null);
+  //   } catch (error: any) {
+  //     setLoading(false);
+  //     setError(`Error while fetching your request: ${error.message}`);
+  //     console.log(error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const getAllOutlets = async () => {
     try {
       setLoading(true);
       const data = await fetchAllOutlets();
-      setOutlets(data)
+      setOutlets(data);
       setError(null);
-    } catch (error : any) {
-      setLoading(false);
+      return data; // Return the fetched data
+    } catch (error: any) {
       setError(`Error while fetching your request: ${error.message}`);
       console.log(error.message);
+      return []; // Return an empty array on error
     } finally {
       setLoading(false);
     }
   };
 
-  const getOutletById  =  (id: string) => {
-return (outlets.find(o => o.id === id))
-  }
+  const getOutletById = (id: string) => {
+    return outlets.find(o => o.id === id);
+  };
 
   return (
     <OutletContext.Provider
-      value={{ outlets, getOutletById, fetchAllOutlets, loading, error }}
+      value={{ outlets, getOutletById, getAllOutlets, loading, error }}
     >
       {children}
     </OutletContext.Provider>

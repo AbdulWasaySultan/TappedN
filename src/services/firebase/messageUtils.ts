@@ -1,15 +1,11 @@
 import firestore from '@react-native-firebase/firestore';
-import { authInstance } from './firebaseConfig';
 
 /**
  * Fetch user profile data (including image) from Firestore
  */
 export const getUserProfile = async (userId: string) => {
   try {
-    const userDoc = await firestore()
-      .collection('users')
-      .doc(userId)
-      .get();
+    const userDoc = await firestore().collection('users').doc(userId).get();
 
     if (!userDoc.exists) {
       console.warn(`User ${userId} not found in Firestore`);
@@ -30,8 +26,9 @@ export const sendMessage = async (
   chatId: string,
   senderId: string,
   receiverId: string,
-  text: string
+  text: string,
 ) => {
+  
   try {
     if (!text.trim()) return;
 
@@ -63,10 +60,11 @@ export const sendMessage = async (
 /**
  * Listen to messages in a chat and return unsubscribe function
  */
-export const listenToMessages = (
+
+export const loadMessages = (
   chatId: string,
   setMessages: (messages: any[]) => any,
-  onError?: (error: any) => void
+  onError?: (error: any) => void,
 ) => {
   try {
     const unsubscribe = firestore()
@@ -86,7 +84,7 @@ export const listenToMessages = (
         error => {
           console.error('Error listening to messages:', error);
           onError?.(error);
-        }
+        },
       );
 
     return unsubscribe;
@@ -95,4 +93,3 @@ export const listenToMessages = (
     throw error;
   }
 };
-

@@ -9,6 +9,7 @@ import PrivacyPolicy from '../screens/HomeStack/HomeTabs/BottomTabNavigator/Sett
 import Subscription from '../screens/Shared/Subscription';
 import MessagingScreen from '../screens/HomeStack/HomeTabs/BottomTabNavigator/MessagingScreen';
 import Home from '../screens/HomeStack/HomeTabs/BottomTabNavigator/Home';
+import OutletTabs from './OutletTabs';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +21,7 @@ export default function HomeStack() {
     >
       <Stack.Screen name="HomeTabs" component={HomeTabs} />
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="OutletTabs" component={OutletTabs} />
       <Stack.Screen name="ServiceStack" component={ServiceStack} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="ProfileSettings" component={ProfileSettings} />

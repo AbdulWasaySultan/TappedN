@@ -27,19 +27,18 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
-import { RootStackParamList } from '../../../Navigation/navigation';
 // import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import OrangeButton from '../../../Components/Buttons/OrangeButton';
-import { useDynamicBooking } from '../../../Context/Firebase/Booking/bookingData';
-import { useBookingContext } from '../../../Context/Firebase/Booking/bookingContext';
-import { useOutletContext } from '../../../Context/API/Outlet/OutletContext';
+import { useDynamicBooking } from '../../../Context/bookingData';
+import { useOutletContext } from '../../../Context/OutletContext';
+import { OutletTabs } from '../../../Navigation/navigation';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
 
 export default function BookAppointment() {
-  const route = useRoute<RouteProp<RootStackParamList, 'BookAppointment'>>();
+  const route = useRoute<RouteProp<OutletTabs, 'BookAppointment'>>();
   const { outletId, serviceId } = route.params;
 
   const [name, setName] = useState('');
@@ -56,11 +55,10 @@ export default function BookAppointment() {
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
 
   const bookingOptions = ['In Outlet', 'Mobile', 'Virtual'];
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<OutletTabs>>();
 
   const [inputHeight, setInputHeight] = useState(100);
   const [notes, setNotes] = useState('');
-  const isSmallScreen = width < 800;
 
   const { createBooking } = useDynamicBooking();
   const { getOutletById } = useOutletContext();

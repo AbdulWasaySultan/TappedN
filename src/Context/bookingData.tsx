@@ -1,7 +1,7 @@
 // bookingData.tsx - Utility for handling dynamic booking data
 import { useBookingContext } from "./bookingContext";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from "../../../Navigation/navigation";
+import { RootStackParamList } from "../Navigation/navigation";
 
 export interface DynamicBookingData {
   outletId: string;

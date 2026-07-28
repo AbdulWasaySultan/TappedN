@@ -3,13 +3,9 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Image, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { FontType } from '../../../Components/Constants/FontType';
-import {
-  RootStackParamList,
-  MyTabsParamList,
-} from '../../../Navigation/navigation';
-import { useRoute, RouteProp } from '@react-navigation/native';
-import { useOutletContext } from '../../../Context/API/Outlet/OutletContext'
+import { useOutletContext } from '../../../Context/OutletContext';
 import SafeImage from '../../../Components/Global/SafeImage';
+import { OutletTabs, RootStack } from '../../../Navigation/navigation';
 // import {OutletData, ServiceReviews, ServicesData, BusinessDetails } from '../../navigation/navigation'; // **CHANGE 1: Import types**
 // import { id } from 'date-fns/locale';
 
@@ -35,7 +31,7 @@ export default function Services({ outletId }: ServicesComponentsProp) {
   const outletData = getOutletById(outletId);
   // const [error, setError] = useState(null);
 
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStack>>();
   // The useRoute hook is redundant now, as data is passed via props
   // const route = useRoute<RouteProp<MyTabsParamList, 'Services'>>();
 
@@ -72,9 +68,7 @@ export default function Services({ outletId }: ServicesComponentsProp) {
           data={servicesOffered}
           keyExtractor={service => service.id}
           renderItem={({ item }) => (
-            <RenderServices 
-            serviceId={item.id} 
-            outletId={outletId} />
+            <RenderServices serviceId={item.id} outletId={outletId} />
             //here we are matching the service from the servicesData
             // or services (in the api) with the serviceId in the
             // serviceReviews so we display the right review for the
@@ -126,8 +120,8 @@ const RenderServices = ({ outletId, serviceId }: RenderServicesProps) => {
     );
   }
 
-  const renderImages = (item : string) => {
-    switch(item) {
+  const renderImages = (item: string) => {
+    switch (item) {
       case 'Hair&Cut':
         return require('../../../assets/images/OutletHairTreatment/OutletPics/pic1.png');
       case 'Window Cleaning':
@@ -135,30 +129,25 @@ const RenderServices = ({ outletId, serviceId }: RenderServicesProps) => {
       default:
         return require('../../../assets/images/OutletHairTreatment/OutletPics/pic1.png');
     }
-  }
+  };
 
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<OutletTabs>>();
   return (
     <TouchableOpacity
-    // key={serviceId}
+      // key={serviceId}
       style={[styles.serviceTouchableContainer]}
       // onPress={() => navigation.navigate('ServiceDetails', {
       //   service: service,
       //   outlet,
       //   serviceReviews, // Provide empty array if not present
       // })}
-      onPress={() =>
-        navigation.navigate('ServiceDetails', {
-          serviceId,
-          outletId,
-        })
-      }
+      onPress={() => navigation.navigate('ServiceDetails', { serviceId, outletId }) }
     >
-     <SafeImage
+      <SafeImage
         uri={serviceData.serviceImage}
         fallbackSource={renderImages(serviceData.serviceName)}
         style={styles.serviceImage}
-        deferUntilInteractions
+        // deferUntilInteractions
       />
       <View style={styles.serviceDetailsColumn}>
         <View style={styles.serviceDetailsRow}>

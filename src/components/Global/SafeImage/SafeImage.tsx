@@ -1,58 +1,32 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
-import {
-  Image,
-  type ImageProps,
-  type ImageSourcePropType,
-  InteractionManager,
-} from 'react-native';
+// Components/Global/SafeImage/SafeImage.tsx
+import React, { useState } from 'react';
+import { Image, ImageProps, ImageSourcePropType } from 'react-native';
 import { getSafeImageSource } from '../../../utils/imageSource';
 
 type Props = Omit<ImageProps, 'source'> & {
-  uri?: unknown;
+  uri?: string | null;
   fallbackSource: ImageSourcePropType;
-  /**
-   * When true, defer rendering until after navigation/animations settle.
-   * This reduces Fabric re-clones during transitions.
-   */
-  deferUntilInteractions?: boolean;
 };
 
-function SafeImageInner({
-  uri,
-  fallbackSource,
-  deferUntilInteractions = false,
-  ...imageProps
-}: Props) {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!deferUntilInteractions) {
-      setReady(true);
-      return;
-    }
-
-    const task = InteractionManager.runAfterInteractions(() => {
-      if (!cancelled) setReady(true);
-    });
-
-    return () => {
-      cancelled = true;
-      task.cancel();
-    };
-  }, [deferUntilInteractions]);
-
-  const source = useMemo(() => {
-    return getSafeImageSource(uri, fallbackSource);
-  }, [uri, fallbackSource]);
-
-  // Deferral strategy: avoid rendering <Image> until we're ready.
-  // Returning null avoids passing an incomplete/invalid ImageSource during transitions.
-  if (!ready) return null;
-
-  return <Image {...imageProps} source={source} />;
+export default function SafeImage({ uri, fallbackSource, style, resizeMode = 'cover', ...imageProps }: Props) {
+  const [hasError, setHasError] = useState(false);
+  
+  // Get the safe source (this will return fallback if URI is invalid)
+  const source = getSafeImageSource(hasError ? null : uri, fallbackSource);
+  
+  // If source is already the fallback (because URI was invalid), just render it
+  if (source === fallbackSource) {
+    return <Image source={fallbackSource} style={style} resizeMode={resizeMode} {...imageProps} />;
+  }
+  
+  // Otherwise try to load the URI and show fallback on error
+  return (
+    <Image
+      source={source}
+      style={style}
+      resizeMode={resizeMode}
+      onError={() => setHasError(true)}
+      {...imageProps}
+    />
+  );
 }
-
-export default memo(SafeImageInner);
-

@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { useBookingContext } from '../../../../Context/Firebase/Booking/bookingContext';
+import { useBookingContext } from '../../../../Context/bookingContext';
 import { StyleSheet } from 'react-native'; // Assuming styles are shared
-import { FontType } from '../../../../Components/Constants/FontType';
+import { FontType } from '../../../../Components/Constants/FontType'; 
 import { Dimensions } from 'react-native';
 import { getSafeImageSource } from '../../../../utils/imageSource';
 

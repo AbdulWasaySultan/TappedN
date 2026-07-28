@@ -42,6 +42,9 @@ export const createUserProfile = async (userData: {
   } catch (error) {
     console.error('Error creating user profile:', error);
   }
+  PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+
+};
 
 async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -53,9 +56,6 @@ async function requestUserPermission() {
     console.log('Authorization status:', authStatus);
   }
 }
-  PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-
-};
 
 // {
 //   "outlets": [

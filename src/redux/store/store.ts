@@ -1,5 +1,5 @@
-import userSliceReducer from '../slices/userData/userSlice';
-import serviceProviderReducer from '../slices/vendorData/serviceProviderSlice';
+import userSliceReducer from '../slices/userSlice';
+import serviceProviderReducer from '../slices/serviceProviderSlice';
 import { configureStore } from '@reduxjs/toolkit';
 
 const store = configureStore({

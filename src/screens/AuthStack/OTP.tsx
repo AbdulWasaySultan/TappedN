@@ -9,17 +9,17 @@ import {
   ImageBackground,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../Navigation/navigation';
+import { AuthStack } from '../../Navigation/navigation';
 import CustomTextField from '../../Components/Form/TextField/index';
 import BackButton from '../../Components/Global/BackButton/BackButton';
 import { useRoute, RouteProp} from '@react-navigation/native';
-
+ 
 
 export default function OTP() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AuthStack>>();
 
 
-const route = useRoute<RouteProp<RootStackParamList, 'OTP'>>();
+const route = useRoute<RouteProp<AuthStack, 'OTP'>>();
 const {email} = route.params
 
   const [OTP, setOTP] = useState<string>('');

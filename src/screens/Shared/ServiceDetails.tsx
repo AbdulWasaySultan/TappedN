@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
   FlatList,
-  // ImageSourcePropType,
 } from 'react-native';
 import {
   useNavigation,
@@ -14,13 +12,12 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
-import { RootStackParamList, allReviews } from '../../Navigation/navigation';
+import { allReviews, OutletTabs } from '../../Navigation/navigation';
 
 import BackButton from '../../Components/Global/BackButton/BackButton';
 import { FontType } from '../../Components/Constants/FontType';
-import { ScrollView } from 'react-native';
 import OrangeButton from '../../Components/Buttons/OrangeButton';
-import { useOutletContext } from '../../Context/API/Outlet/OutletContext';
+import { useOutletContext } from '../../Context/OutletContext';
 import SafeImage from '../../Components/Global/SafeImage';
 
 function formattedTime(dateString: string) {
@@ -42,8 +39,8 @@ const ratingStars = [star, star, star, star, star];
 //                                     services: ServicesData serviceReview: ServiceReview[];
 
 export default function ServiceDetails() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'ServiceDetails'>>();
+  const navigation = useNavigation<NavigationProp<OutletTabs>>();
+  const route = useRoute<RouteProp<OutletTabs, 'ServiceDetails'>>();
   const { outletId, serviceId } = route.params;
 
   const { getOutletById } = useOutletContext();
@@ -84,7 +81,7 @@ export default function ServiceDetails() {
               fallbackSource={require('../../assets/images/Review/profileImage.png')}
               style={styles.profileImage}
               resizeMode="cover"
-              deferUntilInteractions
+              // deferUntilInteractions
             />
           </View>
 
@@ -115,6 +112,8 @@ export default function ServiceDetails() {
   return (
     <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
     <FlatList
+      bounces={false} 
+      overScrollMode="never" 
       data={serviceReviews || []}
       renderItem={renderReviews}
       keyExtractor={item => item.id.toString()}
@@ -242,11 +241,15 @@ export default function ServiceDetails() {
       />
       <View style={styles.footerButtonContainer}>        
       <OrangeButton
-          title="Book Appointment"
-          style={styles.bookAppointmentButton}
-          onPress={() => navigation.navigate('BookAppointment', { outletId: outletData.id, serviceId: service.id })}
-        >
-        </OrangeButton>
+        title="Book Appointment"
+        style={styles.bookAppointmentButton}
+        onPress={() => {
+          navigation.navigate('BookAppointment',{ 
+                outletId: outletData.id, 
+                serviceId: service.id 
+              }
+            )}}
+      />
       </View>
       </View>
   );

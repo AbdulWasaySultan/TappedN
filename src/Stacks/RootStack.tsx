@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useDispatch } from 'react-redux';
-import { useAuth } from '../Context/Firebase/UserData/AuthContext';
-import { setUser, clearUser } from '../redux/slices/userData/userSlice';
-import { firestoreInstance } from '../Firebase/firebaseConfig';
-import { authInstance } from '../Firebase/firebaseConfig';
+import { useAuth } from '../Context/AuthContext';
+import { setUser, clearUser } from '../redux/slices/userSlice';
+import { firestoreInstance } from '../services/firebase/firebaseConfig';
 import Container from '../Components/Layout/Container';
 
 import AuthStack from './AuthStack';

@@ -1,173 +1,41 @@
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   FlatList,
-//   Image,
-//   Dimensions,
-//   Touchable,
-//   TouchableOpacity,
-// } from 'react-native';
-// import { RFValue } from 'react-native-responsive-fontsize';
-// import { FontType } from '../../Components/Constants/FontType';
-// import messaging from '@react-native-firebase/messaging';
-// import { useNavigation, NavigationProp } from '@react-navigation/native';
-// import { HomeTabsParamList, RootStackParamList } from '../../Navigation/navigation';
-// import firebase from '@react-native-firebase/app';
-// import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-// import { sendMessage } from './Settings/MessagingScreen';
-
-// const { width, height } = Dimensions.get('window');
-// const isSmallScreen = height < 800;
-
-// type Users = {
-//   id: string;
-//   image: any;
-//   name: string;
-//   outletName?: string;
-//   message: string;
-//   time: string;
-// };
-
-// async function requestPermission(){
-//   const authorizationStatus = await messaging().requestPermission();
-//   if(authorizationStatus === 
-//     messaging.AuthorizationStatus.AUTHORIZED || 
-//     authorizationStatus === 
-//     messaging.AuthorizationStatus.PROVISIONAL){
-//     console.log('Permission granted');
-//   }
-// }
-
-// messaging().onMessage(async remoteMessage =>{
-//     console.log('Foreground message received:', remoteMessage);
-// }
-// );
-
-// messaging().setBackgroundMessageHandler(async remoteMessage =>{
-//     console.log('Background message received:', remoteMessage);
-// })
-
-
-// export default function Messages() {
-//   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-//   // const [selectedUser, setSelectedUser] = useState<string>('');
-
-//   const [users, setUsers] = useState<Users[]>([
-//     {
-//       id: '1',
-//       image: require('../../assets/images/HomeTabs/Messages/user-profile.png'),
-//       name: 'Andrew Wilson',
-//       outletName : 'Salon XYZ',
-//       message: 'Kese ho? aur ghar nein sb theek hein?',
-//       time: '3hr ago'
-//     },
-//     {
-//       id: '2',
-//       image: require('../../assets/images/HomeTabs/Messages/user2.png'),
-//       name: 'Ahmed Khan',
-//       outletName : 'Barber Shop ABC',
-//       message: 'Assalam u alaikum',
-//       time: '3hr ago',
-//     },
-//     {
-//       id: '3',
-//       image: require('../../assets/images/HomeTabs/Messages/user3.png'),
-//       name: 'Hina',
-//       outletName : 'Beauty Salon 123',
-//       message: 'Kya haal hein?',
-//       time: '5 days ago',
-//     },
-//     {
-//       id: '4',
-//       image: require('../../assets/images/HomeTabs/Messages/user4.png'),
-//       name: 'Hamza',
-//       outletName : 'Spa & Wellness Center',
-//       message: 'Kya haal hein?',
-//       time: '5 days ago',
-//     },
-//     {
-//       id: '5',
-//       image: require('../../assets/images/HomeTabs/Messages/user5.png'),
-//       name: 'Sara',
-//       outletName : 'Salon XYZ',
-//       message: 'Kya haal hein?',
-//       time: '5 days ago',
-//     },
-
-//   ]);
-
-//     const userPressed = (item : Users) => {
-//   // setSelectedUser(item.name);
-//   navigation.navigate('MessagingScreen',{item: item});
-// }
-
-//   const renderItem = ({ item }: { item: Users }) => {
-//     const temp = sendMessage(item.id,item.message);
-//     <>
-//     <TouchableOpacity style={styles.itemContainer} 
-//     onPress={() => userPressed(item)}>
-//       <Image source={item.image} style={styles.itemImage} resizeMode="cover" />
-
-//       <View style={styles.textContainer}>
-//         <View style={styles.rowContainer}>
-//           <Text style={styles.name}>{item.name}</Text>
-//           <Text style={styles.itemTime}>{item.time}</Text>
-//         </View>
-
-//         <Text style={styles.message} numberOfLines={1}>
-//           {/* {item.message} */}
-//           {}
-//         </Text>
-//       </View>
-//     </TouchableOpacity>
-//     </>
-//   };
-
-  
-
-//   return (
-//     <View style={styles.container}>
-//       <View style={styles.header}>
-//         <Text style={styles.messageTitle}>Messages</Text>
-//       </View>
-
-//       <View style={styles.mainContainer}>
-//         {/* <FlatList
-//           data={users}
-//           renderItem={renderItem}
-//           keyExtractor={item => item.id.toString()}
-//           showsVerticalScrollIndicator={false}
-//           contentContainerStyle={{ paddingBottom: 20 }}
-//         /> */}
-//       </View>
-//     </View>
-//   );
-// }
-
-// Messages.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Image,
+  Dimensions,
   TouchableOpacity,
-  Dimensions
+  FlatList,
 } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import { FontType } from '../../../../Components/Constants/FontType';
+import { RFValue } from 'react-native-responsive-fontsize';
+
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { HomeStack } from '../../../../Navigation/navigation';
+
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/store';
-import { FontType } from '../../../../Components/Constants/FontType';
-import { useNavigation,NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../Navigation/navigation';
+import SafeImage from '../../../../Components/Global/SafeImage';
+import firestore from '@react-native-firebase/firestore';
+
+import ChatItem from '../../../../Components/Chat/ChatItem';
+
+// import { sendMessage } from '@react-native-firebase/messaging';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 800;
-import { RFValue } from 'react-native-responsive-fontsize';
-import SafeImage from '../../../../Components/Global/SafeImage';
 
+const formatTime = (date: Date) => {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `${hours}hr ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+};
 
 type ChatItem = {
   chatId: string;
@@ -175,6 +43,7 @@ type ChatItem = {
     uid: string;
     name: string;
     profileImage: string;
+    outletName: string;
   };
   lastMessage: string;
   lastMessageTimestamp: any;
@@ -183,14 +52,15 @@ type ChatItem = {
 export default function Messages() {
   const currentUser = useSelector((state: RootState) => state.user);
   const [chats, setChats] = useState<ChatItem[]>([]);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<HomeStack>>();
 
   useEffect(() => {
     if (!currentUser.uid) return;
 
     // Real-time listener for chats
+    // Create the listener directly instead of calling loadChatCells
     const unsubscribe = firestore()
-      .collection('conversations')
+      .collection('chats')
       .where('users', 'array-contains', currentUser.uid)
       .orderBy('lastMessageTimestamp', 'desc')
       .onSnapshot(snapshot => {
@@ -198,13 +68,12 @@ export default function Messages() {
           setChats([]);
           return;
         }
-        
-        const chatList: ChatItem[] = [];
 
+        const chatList: ChatItem[] = [];
         snapshot.forEach(doc => {
           const data = doc.data();
           const serviceProviderId = data.users.find(
-            (uid: string) => uid !== currentUser.uid
+            (uid: string) => uid !== currentUser.uid,
           );
 
           if (serviceProviderId) {
@@ -214,50 +83,52 @@ export default function Messages() {
                 uid: serviceProviderId,
                 name: data[`user_${serviceProviderId}`]?.name || 'Unknown',
                 profileImage: data[`user_${serviceProviderId}`]?.profileImage || '',
+                outletName: data[`user_${serviceProviderId}`]?.outletName || '', // Add this
               },
               lastMessage: data.lastMessage || 'No messages yet',
               lastMessageTimestamp: data.lastMessageTimestamp,
             });
           }
         });
-
         setChats(chatList);
       });
 
     return () => unsubscribe();
   }, [currentUser.uid]);
 
-  const renderItem = ({ item }: { item: ChatItem }) => (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() =>
-        navigation.navigate('MessagingScreen', {
-          chatId: item.chatId,
-          serviceProvider: item.serviceProvider,
-        })
-      }
-    >
-      <SafeImage
-        uri={item.serviceProvider.profileImage}
-        fallbackSource={require('../../../../assets/images/Others/MeAvatar.png')}
-        style={styles.itemImage}
-        deferUntilInteractions
-      />
+  const renderItem = ({ item }: { item: ChatItem }) => {
+    return (
+      <TouchableOpacity
+        style={[styles.itemContainer, {backgroundColor: 'green'}]}
+        onPress={() =>
+          navigation.navigate('MessagingScreen', {
+            chatId: item.chatId,
+            providerId: item.serviceProvider.uid,
+          })
+        }
+      >
+        <SafeImage
+          uri={item.serviceProvider.profileImage}
+          fallbackSource={require('../../../../assets/images/Others/MeAvatar.png')}
+          style={styles.itemImage}
+        />
 
-      <View style={styles.textContainer}>
-        <View style={styles.rowContainer}>
-          <Text style={styles.name}>{item.serviceProvider.name}</Text>
-          <Text style={styles.itemTime}>
-  {item.lastMessageTimestamp ? formatTime(item.lastMessageTimestamp.toDate()) : ''}
-</Text>
-
+        <View style={styles.textContainer}>
+          <View style={styles.rowContainer}>
+            <Text style={styles.name}>{item.serviceProvider.name}</Text>
+            <Text style={styles.itemTime}>
+              {item.lastMessageTimestamp
+                ? formatTime(item.lastMessageTimestamp.toDate())
+                : ''}
+            </Text>
+          </View>
+          <Text style={styles.message} numberOfLines={1}>
+            {item.lastMessage}
+          </Text>
         </View>
-        <Text style={styles.message} numberOfLines={1}>
-          {item.lastMessage}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -276,28 +147,17 @@ export default function Messages() {
   );
 }
 
-const formatTime = (date: Date) => {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-
-  if (hours < 1) return 'Just now';
-  if (hours < 24) return `${hours}hr ago`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return 'Yesterday';
-  return `${days} days ago`;
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // backgroundColor: 'pink',
   },
   header: {
     // backgroundColor: 'red',
     justifyContent: 'flex-start',
     alignItems: 'center',
     flexDirection: 'row',
-    marginTop: isSmallScreen? '18%' :'22%',
+    marginTop: isSmallScreen ? '18%' : '22%',
     marginHorizontal: 20,
     height: 'auto',
     width: '90%',
@@ -308,29 +168,29 @@ const styles = StyleSheet.create({
     fontSize: FontType.titleBold2,
     fontWeight: '900',
     color: '#263238',
-    marginLeft : 6
+    marginLeft: 6,
   },
   mainContainer: {
-    marginTop : '6%',
+    marginTop: '6%',
     flex: 1,
     width: '95%',
     alignSelf: 'center',
     // backgroundColor: 'orange',
   },
   itemContainer: {
-    backgroundColor: 'white',
+    // backgroundColor: 'green',
     flexDirection: 'row',
-    width: '95%',
-    marginBottom: 15,
+    width: '100%',
+    // marginBottom: 15,
     borderRadius: 15,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    alignSelf : 'center'
+    alignSelf: 'center',
   },
   itemImage: {
     width: width > 360 ? 65 : 55,
     height: width > 360 ? 65 : 55,
-    borderRadius: 0
+    borderRadius: 0,
   },
   textContainer: {
     // backgroundColor: 'blue',
@@ -344,7 +204,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     // backgroundColor: 'red',
-    marginBottom : 3
+    marginBottom: 3,
   },
   name: {
     fontSize: RFValue(15),
@@ -363,3 +223,25 @@ const styles = StyleSheet.create({
     color: '#E50914',
   },
 });
+
+/* <SafeImage
+        uri={item.serviceProvider.profileImage}
+        fallbackSource={require('../../../../assets/images/Others/MeAvatar.png')}
+        style={styles.itemImage}
+      />
+
+      <View style={styles.textContainer}>
+        <View style={styles.rowContainer}>
+          <Text style={styles.name}>{item.serviceProvider.name}</Text>
+          <Text style={styles.itemTime}>
+            {item.lastMessageTimestamp
+              ? formatTime(item.lastMessageTimestamp.toDate())
+              : ''}
+          </Text>
+        </View>
+        <Text style={styles.message} numberOfLines={1}>
+          {item.lastMessage}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  ); */
